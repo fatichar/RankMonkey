@@ -79,6 +79,8 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
 
+builder.Services.AddAutoMapper(typeof(MappingProfile));
+
 builder.Services.AddScoped<AuthenticationService>();
 builder.Services.AddScoped<IAuthProvider, GoogleAuthProvider>();
 if (builder.Environment.IsDevelopment())
@@ -89,7 +91,7 @@ if (builder.Environment.IsDevelopment())
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<JwtService>();
 
-builder.Services.AddAutoMapper(typeof(MappingProfile));
+builder.Services.AddScoped<FinancialDataService>();
 
 var app = builder.Build();
 

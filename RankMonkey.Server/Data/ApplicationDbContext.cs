@@ -8,6 +8,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 {
     public required DbSet<User> Users { get; init; }
     public required DbSet<Role> Roles { get; init; }
+    public required DbSet<FinancialData> FinancialData { get; init; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -45,6 +46,13 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
                   .WithMany()
                   .HasForeignKey(x => x.RoleId)
                   .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<FinancialData>(financialData =>
+        {
+            financialData.HasIndex(x => new { x.UserId, x.DataType }).IsUnique();
+            financialData.Property(x => x.DataType).HasMaxLength(50);
+            financialData.Property(x => x.Value).HasPrecision(18, 2);
         });
 
         SeedRoles(modelBuilder);
