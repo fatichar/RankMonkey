@@ -1,0 +1,68 @@
+@page "/"
+@using HowRich.Shared.Models
+@using System.Net.Http.Json
+@using Microsoft.AspNetCore.Components.Authorization
+@using UserInfo = HowRich.Shared.Models.UserInfo
+@inject HttpClient Http
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+
+<h1>HowRich</h1>
+
+<AuthorizeView>
+    <Authorized>
+        <p>Welcome, @context.User.Identity?.Name!</p>
+        <AppUserForm OnSubmit="SubmitAppUser" />
+        @if (_ranking != null)
+        {
+            <RankingDisplay Ranking="_ranking" />
+        }
+        <button @onclick="SignOut">Sign Out</button>
+    </Authorized>
+    <NotAuthorized>
+        <p>Please sign in to use the app.</p>
+        <button @onclick="SignIn">Sign In with Google</button>
+    </NotAuthorized>
+</AuthorizeView>
+
+<h2>Debug Info:</h2>
+<AuthorizeView>
+    <Authorized>
+        <p>User is authenticated.</p>
+        <p>Claims:</p>
+        <ul>
+            @foreach (var claim in context.User.Claims)
+            {
+                <li>@claim.Type: @claim.Value</li>
+            }
+        </ul>
+    </Authorized>
+    <NotAuthorized>
+        <p>User is not authenticated.</p>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private Ranking _ranking;
+
+    private async Task SubmitUserData(UserInfo userInfo)
+    {
+        var response = await Http.PostAsJsonAsync("api/userdata", userInfo);
+        if (response.IsSuccessStatusCode)
+        {
+            _ranking = await response.Content.ReadFromJsonAsync<Ranking>();
+        }
+    }
+
+    private void SignIn()
+    {
+        NavigationManager.NavigateTo("api/auth/login", true);
+    }
+
+    private async Task SignOut()
+    {
+        await Http.GetAsync("api/auth/logout");
+        await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        NavigationManager.NavigateTo("/", true);
+    }
+}

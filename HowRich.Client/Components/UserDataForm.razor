@@ -1,0 +1,36 @@
+@using HowRich.Shared.Models
+@using UserInfo = HowRich.Shared.Models.UserInfo
+
+<EditForm Model="@_userInfo" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div>
+        <label for="email">Email:</label>
+        <InputText id="email" @bind-Value="_userInfo.Email" />
+    </div>
+
+    <div>
+        <label for="income">Annual Income:</label>
+        <InputNumber id="income" @bind-Value="_userInfo.Income" />
+    </div>
+
+    <div>
+        <label for="netWorth">Net Worth:</label>
+        <InputNumber id="netWorth" @bind-Value="_userInfo.NetWorth" />
+    </div>
+
+    <button type="submit">Submit</button>
+</EditForm>
+
+@code {
+    private UserInfo _userInfo = new();
+
+    [Parameter]
+    public EventCallback<UserInfo> OnSubmit { get; set; }
+
+    private async Task HandleValidSubmit()
+    {
+        await OnSubmit.InvokeAsync(_userInfo);
+    }
+}

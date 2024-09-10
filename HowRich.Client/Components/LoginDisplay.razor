@@ -1,0 +1,15 @@
+﻿@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+
+<AuthorizeView>
+    <Authorized>
+        <a href="api/auth/logout">Logout</a>
+        <p>Hello, context.User.Identity.Name!</p>
+    </Authorized>
+    <NotAuthorized>
+        <a href="https://localhost:5001/api/auth/login">Login with Google</a>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+
+}
