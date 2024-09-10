@@ -1,0 +1,40 @@
+@page "/"
+@page "/Login"
+
+@using RankMonkey.Client.Auth
+@using RankMonkey.Client.Services
+@using Microsoft.AspNetCore.Components.WebAssembly.Hosting
+
+@inject HttpClient Http
+@inject CustomAuthStateProvider AuthStateProvider
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JsRuntime
+@inject ILocalStorageService LocalStorage
+@inject ILogger<Index> Logger
+@inject IConfiguration Configuration
+@inject System.Text.Json.JsonSerializerOptions JsonOptions
+@inject IWebAssemblyHostEnvironment Env
+
+<h1>RankMonkey</h1>
+
+<AuthorizeView>
+    <Authorized>
+        <p>Welcome, @context.User.Identity?.Name!</p>
+        <button @onclick="Logout">Sign Out</button>
+    </Authorized>
+    <NotAuthorized>
+        <p>Please sign in to use the app.</p>
+        <div id="googleSignInButton"></div>
+        @if (Env.IsDevelopment())
+        {
+            <button @onclick="LoginAsGuest">Sign In As Guest</button>
+        }
+    </NotAuthorized>
+</AuthorizeView>
+
+@if (!string.IsNullOrEmpty(_errorMessage))
+{
+    <div class="alert alert-danger" role="alert">
+        @_errorMessage
+    </div>
+}

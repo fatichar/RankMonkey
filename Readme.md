@@ -1,17 +1,35 @@
-# HowRich
+# RankMonkey
 
-HowRich is a simple app that allows you to enter your income and net
-worth, and find out where you stand compared to others.
+RankMonkey is a web application that allows users to compare their income and net worth with others. It provides a simple and private way to see where you stand financially compared to your peers.
 
-Your data is private. Nobody can see your information.
+## Project Structure
 
-## Ranking Features
+The solution consists of several projects:
 
-### Income Rank
-### Net Worth Rank
+- `RankMonkey.Server`: ASP.NET Core Web API backend
+- `RankMonkey.Client`: Blazor WebAssembly frontend
+- `RankMonkey.Shared`: Shared models and constants
+- `RankMonkey.Host`: Aspire host project for orchestrating the application
+- `RankMonkey.ServiceDefaults`: Common service configurations
 
-## Future Features
-### Tax Rank
-### Expense Rank
-### Debt Rank
-### Get notified when your ranking changes
+## Getting Started
+
+### Prerequisites
+
+- .NET 8.0 SDK
+
+### Running the Application
+
+1. Clone the repository github.com/fatichar/RankMonkey.git
+2. Navigate to the solution directory
+3. Add the Google Client ID, Client Secret, and JWT Secret to the user secrets:
+   ```
+   dotnet user-secrets set "Authentication:Google:ClientId" "your_google_client_id"
+   dotnet user-secrets set "Authentication:Google:ClientSecret" "your_google_client_secret"
+   dotnet user-secrets set "Jwt:SecretKey" "your_jwt_secret_key"
+   ```
+4. Run the following command:
+   ```
+   dotnet run --project RankMonkey.Host
+   ```
+5. Open a web browser and navigate to `https://localhost:6001` to access the application.

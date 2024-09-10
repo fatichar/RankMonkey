@@ -1,0 +1,22 @@
+﻿@page "/authentication/login-callback"
+
+@using RankMonkey.Client.Services
+@inject NavigationManager NavigationManager
+@inject ILocalStorageService LocalStorage
+@inject AuthenticationStateProvider AuthStateProvider
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        var token = System.Web.HttpUtility.ParseQueryString(uri.Query).Get("token");
+
+        if (!string.IsNullOrEmpty(token))
+        {
+            await LocalStorage.SetItemAsync("authToken", token);
+            ((AuthStateProvider)AuthStateProvider).MarkUserAsAuthenticated(token);
+        }
+
+        NavigationManager.NavigateTo("/");
+    }
+}
