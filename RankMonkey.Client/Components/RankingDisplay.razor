@@ -1,0 +1,10 @@
+@using RankMonkey.Shared.Models
+
+<h2>Your Rankings</h2>
+<p>Income Percentile: @Ranking.IncomePercentile%</p>
+<p>Net Worth Percentile: @Ranking.NetWorthPercentile%</p>
+
+@code {
+    [Parameter]
+    public Ranking Ranking { get; set; }
+}
