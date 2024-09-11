@@ -1,48 +1,65 @@
-﻿using System.Security.Claims;
+﻿using System.Security.Authentication;
+using System.Security.Claims;
+using AutoMapper;
+
 using RankMonkey.Shared.Models;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Google;
-using Microsoft.AspNetCore.Mvc;
 using RankMonkey.Server.Data;
 using RankMonkey.Server.Entities;
 
 namespace RankMonkey.Server.Services;
 
-public class AuthService(ApplicationDbContext dbContext)
+public class AuthService(ApplicationDbContext dbContext, JwtService jwtService, IMapper mapper)
 {
-    public async Task<UserInfo> OnAuthenticated(AuthenticateResult authenticateResult)
+    public async Task<string> OnAuthenticated(AuthenticateResult authenticateResult)
     {
-        var claims = authenticateResult.Principal?.Identities.FirstOrDefault()?.Claims;
-        var userId = claims?.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
-        var userName = claims?.FirstOrDefault(x => x.Type == ClaimTypes.Name)?.Value;
-        var userEmail = claims?.FirstOrDefault(x => x.Type == ClaimTypes.Email)?.Value;
-
-        var user = new User()
+        var claims = authenticateResult.Principal?.Identities.FirstOrDefault()?.Claims?.ToList();
+        if (claims == null)
         {
-            GoogleId = userId,
+            throw new AuthenticationException("No claims found in the authentication result.");
+        }
+
+        var userEmail = claims.FirstOrDefault(x => x.Type == ClaimTypes.Email)?.Value;
+        if (string.IsNullOrEmpty(userEmail))
+        {
+            throw new AuthenticationException("No email found in the claims.");
+        }
+
+        // Check if the user exists in the database
+        var user = dbContext.Users.FirstOrDefault(u => u.Email == userEmail);
+        if (user == null)
+        {
+            var googleId = claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
+            var userName = claims.FirstOrDefault(x => x.Type == ClaimTypes.Name)?.Value;
+            user = await CreateUser(googleId, userName, userEmail);
+        }
+
+        var token = jwtService.GenerateToken(user);
+        return token;
+    }
+
+    private async Task<User> CreateUser(string? googleId, string? userName, string userEmail)
+    {
+        User user;
+        user = new User()
+        {
+            GoogleId = googleId,
             Name = userName,
             Email = userEmail
         };
-
-        // Check if the user exists in the database
-        var existingUser = dbContext.Users.FirstOrDefault(u => u.GoogleId == userId);
-        if (existingUser == null)
-        {
-            dbContext.Users.Add(user);
-            await dbContext.SaveChangesAsync();
-            existingUser = user;
-        }
-
-        return ToModel(existingUser);
+        dbContext.Users.Add(user);
+        await dbContext.SaveChangesAsync();
+        return user;
     }
 
-    private static UserInfo ToModel(User user)
+    public UserInfo? GetUser(int userId)
     {
-        return new UserInfo()
-        {
-            Id = user.Id,
-            Name = user.Name,
-            Email = user.Email
-        };
+        var user = dbContext.Users.FirstOrDefault(u => u.Id == userId);
+        return user != null ? ToModel(user) : null;
+    }
+
+    private UserInfo ToModel(User user)
+    {
+        return mapper.Map<UserInfo>(user);
     }
 }

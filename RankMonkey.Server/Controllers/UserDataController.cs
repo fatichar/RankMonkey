@@ -17,19 +17,27 @@ public class UserDataController : ControllerBase
         _userDataService = userDataService;
     }
 
-    [HttpPost]
-    public async Task<ActionResult<Ranking>> SubmitUserData(UserInfo userInfo)
-    {
-        var userId = User.FindFirst("sub")?.Value;
-        if (string.IsNullOrEmpty(userId))
-        {
-            return Unauthorized();
-        }
-
-        userInfo.Id = userId;
-        var ranking = await _userDataService.SubmitUserDataAsync(userInfo);
-        return Ok(ranking);
-    }
+    // [HttpPost]
+    // public async Task<ActionResult<Ranking>> SubmitUserData(UserInfo userInfo)
+    // {
+    //     var userId = User.FindFirst("sub")?.Value;
+    //     if (string.IsNullOrEmpty(userId))
+    //     {
+    //         return Unauthorized();
+    //     }
+    //
+    //     try
+    //     {
+    //         userInfo.Id = int.Parse(userId);
+    //     }
+    //     catch (Exception e)
+    //     {
+    //         Console.WriteLine(e);
+    //         throw;
+    //     }
+    //     var ranking = await _userDataService.SubmitUserDataAsync(userInfo);
+    //     return Ok(ranking);
+    // }
 
     [HttpGet]
     public async Task<ActionResult<UserInfo>> GetUserData()

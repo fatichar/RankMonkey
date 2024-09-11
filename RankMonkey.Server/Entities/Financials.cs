@@ -9,7 +9,7 @@ public class Financials
 {
     [Key]
     [Column("id")]
-    public string UserId { get; set; }
+    public int UserId { get; set; }
 
     [Column("currency")]
     [MaxLength(3)]  // ISO 4217 standard for currency codes (e.g., USD, EUR)
