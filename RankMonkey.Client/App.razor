@@ -3,7 +3,7 @@
 @using RankMonkey.Client.Shared
 @using RankMonkey.Client.Components
 
-@* <CascadingAuthenticationState>
+ <CascadingAuthenticationState>
     <Router AppAssembly="@typeof(App).Assembly">
         <Found Context="routeData">
             <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
@@ -29,6 +29,6 @@
             </LayoutView>
         </NotFound>
     </Router>
-</CascadingAuthenticationState> *@
+</CascadingAuthenticationState>
 
-<LoginDisplay/>
+@* <LoginDisplay/> *@

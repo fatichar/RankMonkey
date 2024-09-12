@@ -13,10 +13,6 @@
     <Authorized>
         <p>Welcome, @context.User.Identity?.Name!</p>
         <AppUserForm OnSubmit="SubmitAppUser" />
-        @if (_ranking != null)
-        {
-            <RankingDisplay Ranking="_ranking" />
-        }
         <button @onclick="SignOut">Sign Out</button>
     </Authorized>
     <NotAuthorized>
@@ -42,26 +38,25 @@
     </NotAuthorized>
 </AuthorizeView>
 
-@code {
-    private Ranking _ranking;
+@code
+{
+    const string SERVER_URL = "https://localhost:5001/";
 
-    private async Task SubmitUserData(UserInfo userInfo)
-    {
-        var response = await Http.PostAsJsonAsync("api/userdata", userInfo);
-        if (response.IsSuccessStatusCode)
-        {
-            _ranking = await response.Content.ReadFromJsonAsync<Ranking>();
-        }
-    }
+    const string LOGIN_PATH = "api/auth/login";
+    const string LOGIN_API = SERVER_URL + LOGIN_PATH;
+
+    const string LOGOUT_PATH = "api/auth/logout";
+    const string LOGOUT_API = SERVER_URL + LOGOUT_PATH;
+
 
     private void SignIn()
     {
-        NavigationManager.NavigateTo("api/auth/login", true);
+        NavigationManager.NavigateTo(LOGIN_API, true);
     }
 
     private async Task SignOut()
     {
-        await Http.GetAsync("api/auth/logout");
+        await Http.GetAsync(LOGOUT_API);
         await AuthenticationStateProvider.GetAuthenticationStateAsync();
         NavigationManager.NavigateTo("/", true);
     }
