@@ -7,9 +7,17 @@
     <base href="/" />
     <link href="css/app.css" rel="stylesheet" />
     <link href="RankMonkey.Client.styles.css" rel="stylesheet" />
+    <script src="https://accounts.google.com/gsi/client"></script>
 </head>
 <body>
     <div id="app">Loading...</div>
     <script src="_framework/blazor.webassembly.js"></script>
+    <script src="js/googleAuth.js"></script>
+    <script>
+        window.handleGoogleSignIn = (googleUser) => {
+            console.log("handleGoogleSignIn called from index.html");
+            DotNet.invokeMethodAsync('RankMonkey.Client', 'HandleGoogleSignIn', googleUser);
+        };
+    </script>
 </body>
 </html>

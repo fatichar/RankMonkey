@@ -1,70 +1,50 @@
 using System.Security.Claims;
-using RankMonkey.Server.Data;
-using RankMonkey.Shared.Models;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.Google;
-using Microsoft.AspNetCore.Mvc;
 using RankMonkey.Server.Services;
-using AutoMapper;
+using RankMonkey.Shared.Models;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace RankMonkey.Server.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class AuthController : ControllerBase
+public class AuthController(AuthService authService, JwtService jwtService) : ControllerBase
 {
-    private readonly AuthService _authService;
-    private readonly JwtService _jwtService;
-    private readonly IMapper _mapper;
-
-    public AuthController(AuthService authService, JwtService jwtService, IMapper mapper)
+    [HttpPost("google-login")]
+    public async Task<IActionResult> GoogleLogin([FromBody] string idToken)
     {
-        _authService = authService;
-        _jwtService = jwtService;
-        _mapper = mapper;
+        try
+        {
+            var user = await authService.VerifyGoogleToken(idToken);
+            if (user == null)
+                return Unauthorized();
+
+            var jwtToken = jwtService.GenerateToken(user);
+            return Ok(new { Token = jwtToken });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 
-    [HttpGet("login")]
-    public IActionResult Login()
-    {
-        var redirectUrl = Url.Action("OnGoogleResponse");
-        var properties = new AuthenticationProperties { RedirectUri = redirectUrl };
-
-        return Challenge(properties, GoogleDefaults.AuthenticationScheme);
-    }
-
-    [HttpGet("logout")]
-    public IActionResult Logout()
-    {
-        // JWT logout is handled client-side by removing the token
-        return Ok();
-    }
-
+    [Authorize]
     [HttpGet("user")]
     public IActionResult GetUser()
     {
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (string.IsNullOrEmpty(userId))
-        {
             return Unauthorized();
-        }
-        int id = int.Parse(userId);
 
-        var claims = User.Claims.Select(c => new { c.Type, c.Value });
-        var userInfo = _authService.GetUser(id);
-        return Ok(new { IsAuthenticated = true, User = userInfo, Claims = claims });
+        var userInfo = authService.GetUser(int.Parse(userId));
+        return Ok(userInfo);
     }
 
-    [HttpGet("GoogleResponse")]
-    public async Task<IActionResult> OnGoogleResponse()
+    [Authorize]
+    [HttpPost("logout")]
+    public IActionResult Logout()
     {
-        var authResult = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-        if (!authResult.Succeeded)
-            return BadRequest();
-
-        var token = await _authService.OnAuthenticated(authResult);
-
-        return Ok(new { Token = token});
+        // Server-side logout logic (if needed)
+        return Ok();
     }
 }

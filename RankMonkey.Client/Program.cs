@@ -1,29 +1,30 @@
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
-using Microsoft.AspNetCore.Components.Authorization;
 using RankMonkey.Client;
+using RankMonkey.Client.Auth;
 using RankMonkey.Client.Services;
+using Serilog;
+using Serilog.Extensions.Logging;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-builder.Services.AddScoped(sp =>
-    new HttpClient
-    {
-        BaseAddress = new Uri("https://localhost:5001/")
-    });
+// Configure Serilog
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Debug()
+    .WriteTo.BrowserConsole()
+    .CreateLogger();
 
-builder.Services.AddOidcAuthentication(options =>
-{
-    options.ProviderOptions.ClientId = builder.Configuration["Authentication:Google:ClientId"];
-    options.ProviderOptions.Authority = "https://accounts.google.com";
-    options.ProviderOptions.ResponseType = "id_token token";
-});
+// Use Serilog for logging
+builder.Logging.AddProvider(new SerilogLoggerProvider(Log.Logger));
 
-builder.Services.AddAuthorizationCore();
-
-builder.Services.AddScoped<AuthenticationStateProvider, AuthStateProvider>();
+builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 builder.Services.AddScoped<ILocalStorageService, LocalStorageService>();
+builder.Services.AddAuthorizationCore();
+builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
 
 await builder.Build().RunAsync();
+
+Log.CloseAndFlush();

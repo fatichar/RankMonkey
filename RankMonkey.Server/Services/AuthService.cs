@@ -1,61 +1,54 @@
-﻿using System.Security.Authentication;
-using System.Security.Claims;
-using AutoMapper;
-
+﻿using AutoMapper;
+using Google.Apis.Auth;
 using RankMonkey.Shared.Models;
-using Microsoft.AspNetCore.Authentication;
 using RankMonkey.Server.Data;
+using Microsoft.EntityFrameworkCore;
 using RankMonkey.Server.Entities;
 
 namespace RankMonkey.Server.Services;
 
-public class AuthService(ApplicationDbContext dbContext, JwtService jwtService, IMapper mapper)
+public class AuthService(IConfiguration configuration, ApplicationDbContext context, IMapper mapper)
 {
-    public async Task<string> OnAuthenticated(AuthenticateResult authenticateResult)
+    public async Task<UserInfo?> VerifyGoogleToken(string idToken)
     {
-        var claims = authenticateResult.Principal?.Identities.FirstOrDefault()?.Claims?.ToList();
-        if (claims == null)
+        try
         {
-            throw new AuthenticationException("No claims found in the authentication result.");
-        }
+            var settings = new GoogleJsonWebSignature.ValidationSettings()
+            {
+                Audience = new List<string> { configuration["Authentication:Google:ClientId"] }
+            };
 
-        var userEmail = claims.FirstOrDefault(x => x.Type == ClaimTypes.Email)?.Value;
-        if (string.IsNullOrEmpty(userEmail))
+            var payload = await GoogleJsonWebSignature.ValidateAsync(idToken, settings);
+
+            var user = await context.Users.FirstOrDefaultAsync(u => u.Email == payload.Email);
+            if (user == null)
+            {
+                user = new User
+                {
+                    Email = payload.Email,
+                    Name = payload.Name,
+                    GoogleId = payload.Subject
+                };
+                context.Users.Add(user);
+                await context.SaveChangesAsync();
+            }
+
+            return ToModel(user);
+        }
+        catch (InvalidJwtException)
         {
-            throw new AuthenticationException("No email found in the claims.");
+            return null;
         }
+    }
 
-        // Check if the user exists in the database
-        var user = dbContext.Users.FirstOrDefault(u => u.Email == userEmail);
+    public UserInfo GetUser(int userId)
+    {
+        var user = context.Users.FirstOrDefault(u => u.Id == userId);
         if (user == null)
         {
-            var googleId = claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
-            var userName = claims.FirstOrDefault(x => x.Type == ClaimTypes.Name)?.Value;
-            user = await CreateUser(googleId, userName, userEmail);
+            throw new Exception("User not found");
         }
-
-        var token = jwtService.GenerateToken(user);
-        return token;
-    }
-
-    private async Task<User> CreateUser(string? googleId, string? userName, string userEmail)
-    {
-        User user;
-        user = new User()
-        {
-            GoogleId = googleId,
-            Name = userName,
-            Email = userEmail
-        };
-        dbContext.Users.Add(user);
-        await dbContext.SaveChangesAsync();
-        return user;
-    }
-
-    public UserInfo? GetUser(int userId)
-    {
-        var user = dbContext.Users.FirstOrDefault(u => u.Id == userId);
-        return user != null ? ToModel(user) : null;
+        return ToModel(user);
     }
 
     private UserInfo ToModel(User user)

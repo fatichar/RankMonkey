@@ -1,6 +1,5 @@
 using Microsoft.JSInterop;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace RankMonkey.Client.Services;
 

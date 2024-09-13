@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using RankMonkey.Server.Entities;
+using RankMonkey.Shared.Models;
 
 namespace RankMonkey.Server.Services;
 
@@ -17,7 +18,7 @@ public class JwtService
 
     public JwtService(IConfiguration configuration)
     {
-        var keyData = Encoding.UTF8.GetBytes(configuration["Jwt:Key"] ?? throw new InvalidOperationException());
+        var keyData = Encoding.UTF8.GetBytes(configuration["Jwt:SecretKey"] ?? throw new InvalidOperationException());
         var key = new SymmetricSecurityKey(keyData);
         _credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
@@ -28,7 +29,7 @@ public class JwtService
                                   ?? DEFAULT_TOKEN_EXPIRATION_IN_HOURS;
     }
 
-    public string GenerateToken(User user)
+    public string GenerateToken(UserInfo user)
     {
         var claims = new List<Claim>
         {
