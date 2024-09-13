@@ -41,9 +41,10 @@ public class AuthService(IConfiguration configuration, ApplicationDbContext cont
         }
     }
 
-    public UserInfo GetUser(int userId)
+    public UserInfo GetUser(string userId)
     {
-        var user = context.Users.FirstOrDefault(u => u.Id == userId);
+        var guidUserId = Guid.Parse(userId);
+        var user = context.Users.FirstOrDefault(u => u.Id == guidUserId);
         if (user == null)
         {
             throw new Exception("User not found");

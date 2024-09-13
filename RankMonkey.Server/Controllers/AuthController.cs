@@ -36,7 +36,7 @@ public class AuthController(AuthService authService, JwtService jwtService) : Co
         if (string.IsNullOrEmpty(userId))
             return Unauthorized();
 
-        var userInfo = authService.GetUser(int.Parse(userId));
+        var userInfo = authService.GetUser(userId);
         return Ok(userInfo);
     }
 
