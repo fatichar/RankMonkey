@@ -6,80 +6,58 @@ using RankMonkey.Client.Services;
 
 namespace RankMonkey.Client.Auth;
 
-public class CustomAuthStateProvider
-    (HttpClient httpClient, ILocalStorageService localStorage) : AuthenticationStateProvider
+public class CustomAuthStateProvider(HttpClient httpClient, ILocalStorageService storage)
+        : AuthenticationStateProvider
 {
+    private const string AUTH_TOKEN = "authToken";
+    private readonly AuthenticationState _anonymous = new (new ClaimsPrincipal(new ClaimsIdentity()));
+
     public override async Task<AuthenticationState> GetAuthenticationStateAsync()
     {
-        var token = await localStorage.GetItemAsync<string>("authToken");
+        var token = await storage.GetItemAsync<string>(AUTH_TOKEN);
 
+        return CreateAuthState(token);
+    }
+
+    public async Task MarkUserAsAuthenticated(string token)
+    {
+        await storage.SetItemAsync(AUTH_TOKEN, token);
+
+        SetAuthorization(token);
+
+        var authState = CreateAuthState(token);
+        NotifyAuthenticationStateChanged(Task.FromResult(authState));
+    }
+
+    private AuthenticationState CreateAuthState(string token)
+    {
         if (string.IsNullOrWhiteSpace(token))
         {
-            return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
+            return _anonymous;
         }
 
-        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-        return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity(ParseClaimsFromJwt(token), "jwt")));
+        var claims = JwtUtil.ParseClaimsFromJwt(token);
+        var identity = new ClaimsIdentity(claims, "jwt");
+        var authenticatedUser = new ClaimsPrincipal(identity);
+        return new AuthenticationState(authenticatedUser);
     }
 
-    public void MarkUserAsAuthenticated(string token)
+    private void SetAuthorization(string token)
     {
-        var authenticatedUser = new ClaimsPrincipal(new ClaimsIdentity(ParseClaimsFromJwt(token), "jwt"));
-        var authState = Task.FromResult(new AuthenticationState(authenticatedUser));
-        NotifyAuthenticationStateChanged(authState);
+        httpClient.DefaultRequestHeaders.Authorization = new("Bearer", token);
     }
 
-    public void MarkUserAsLoggedOut()
+    private void ClearAuthenticationState()
     {
-        var anonymousUser = new ClaimsPrincipal(new ClaimsIdentity());
-        var authState = Task.FromResult(new AuthenticationState(anonymousUser));
-        NotifyAuthenticationStateChanged(authState);
+        httpClient.DefaultRequestHeaders.Authorization = null;
     }
 
-    private IEnumerable<Claim> ParseClaimsFromJwt(string jwt)
+    public async Task MarkUserAsLoggedOut()
     {
-        var claims = new List<Claim>();
-        var payload = jwt.Split('.')[1];
-        var jsonBytes = ParseBase64WithoutPadding(payload);
-        var keyValuePairs = JsonSerializer.Deserialize<Dictionary<string, object>>(jsonBytes);
+        await storage.RemoveItemAsync(AUTH_TOKEN);
 
-        if (keyValuePairs != null)
-        {
-            keyValuePairs.TryGetValue(ClaimTypes.Role, out object roles);
+        ClearAuthenticationState();
 
-            if (roles != null)
-            {
-                if (roles.ToString().Trim().StartsWith("["))
-                {
-                    var parsedRoles = JsonSerializer.Deserialize<string[]>(roles.ToString());
-
-                    foreach (var parsedRole in parsedRoles)
-                    {
-                        claims.Add(new Claim(ClaimTypes.Role, parsedRole));
-                    }
-                }
-                else
-                {
-                    claims.Add(new Claim(ClaimTypes.Role, roles.ToString()));
-                }
-
-                keyValuePairs.Remove(ClaimTypes.Role);
-            }
-
-            claims.AddRange(keyValuePairs.Select(kvp => new Claim(kvp.Key, kvp.Value.ToString())));
-        }
-
-        return claims;
-    }
-
-    private byte[] ParseBase64WithoutPadding(string base64)
-    {
-        switch (base64.Length % 4)
-        {
-            case 2: base64 += "=="; break;
-            case 3: base64 += "="; break;
-        }
-        return Convert.FromBase64String(base64);
+        NotifyAuthenticationStateChanged(Task.FromResult(_anonymous));
     }
 }

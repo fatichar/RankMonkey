@@ -1,5 +1,3 @@
-using System.Threading.Tasks;
-
 namespace RankMonkey.Client.Services;
 
 public interface ILocalStorageService

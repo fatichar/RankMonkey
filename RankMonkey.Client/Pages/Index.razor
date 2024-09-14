@@ -1,19 +1,17 @@
 @page "/"
-@using RankMonkey.Shared.Models
-@using System.Net.Http.Json
-@using System.Text.Json
+
 @using System.Text.Json.Serialization
-@using Microsoft.AspNetCore.Components.Authorization
 @using RankMonkey.Client.Auth
 @using RankMonkey.Client.Services
-@using Serilog
-@using UserInfo = RankMonkey.Shared.Models.UserInfo
+@using RankMonkey.Shared.Models
+
 @inject HttpClient Http
-@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject CustomAuthStateProvider AuthStateProvider
 @inject NavigationManager NavigationManager
-@inject IJSRuntime JSRuntime
+@inject IJSRuntime JsRuntime
 @inject ILocalStorageService LocalStorage
 @inject ILogger<Index> Logger
+@inject IConfiguration Configuration
 
 <h1>RankMonkey</h1>
 
@@ -25,7 +23,6 @@
     <NotAuthorized>
         <p>Please sign in to use the app.</p>
         <div id="googleSignInButton"></div>
-        @* <p>Debug: Google Sign-In button should appear above this line.</p> *@
     </NotAuthorized>
 </AuthorizeView>
 
@@ -37,11 +34,9 @@
 }
 
 @code {
-    const string SERVER_URL = "https://localhost:5001/";
-    const string LOGIN_PATH = "api/auth/google-login";
-    const string LOGIN_API = SERVER_URL + LOGIN_PATH;
-    const string LOGOUT_PATH = "api/auth/logout";
-    const string LOGOUT_API = SERVER_URL + LOGOUT_PATH;
+    private string ServerUrl => Configuration["ServerUrl"] ?? "https://rankmonkey.in/";
+    private string LoginApi => $"{ServerUrl}api/auth/google-login";
+    private string LogoutApi => $"{ServerUrl}api/auth/logout";
     private string _errorMessage = string.Empty;
     private string ErrorMessage
     {
@@ -65,8 +60,8 @@
     {
         try
         {
-            await JSRuntime.InvokeVoidAsync("initializeGoogleSignIn");
-            await JSRuntime.InvokeVoidAsync("renderGoogleSignInButton");
+            await JsRuntime.InvokeVoidAsync("initializeGoogleSignIn");
+            await JsRuntime.InvokeVoidAsync("renderGoogleSignInButton");
         }
         catch (Exception ex)
         {
@@ -90,15 +85,16 @@
         Logger.LogInformation($"SignIn called with token length: {googleToken.Length}");
         try
         {
-            var response = await Http.PostAsJsonAsync(LOGIN_API, googleToken);
+            var response = await Http.PostAsJsonAsync(LoginApi, googleToken);
             if (response.IsSuccessStatusCode)
             {
                 var token = await response.Content.ReadFromJsonAsync<TokenResponse>();
                 if (token != null)
                 {
                     Logger.LogInformation("Login successful");
-                    await LocalStorage.SetItemAsync("authToken", token.Token);
-                    await AuthenticationStateProvider.GetAuthenticationStateAsync();
+
+                    await AuthStateProvider.MarkUserAsAuthenticated(token.Token);
+
                     NavigationManager.NavigateTo("/", true);
                 }
                 else
@@ -124,13 +120,25 @@
     private async Task SignOut()
     {
         await LocalStorage.RemoveItemAsync("authToken");
-        ((CustomAuthStateProvider)AuthenticationStateProvider).MarkUserAsLoggedOut();
-        NavigationManager.NavigateTo("/", true);
-    }
+        AuthStateProvider.MarkUserAsLoggedOut();
 
-    public class TokenResponse
-    {
-        [JsonPropertyName("token")]
-        public string Token { get; set; }
+        try
+        {
+            var response = await Http.PostAsync(LogoutApi, null);
+            if (response.IsSuccessStatusCode)
+            {
+                NavigationManager.NavigateTo("/", true);
+            }
+            else
+            {
+                ErrorMessage = "Failed to sign out";
+                Logger.LogError("Failed to sign out");
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
     }
 }

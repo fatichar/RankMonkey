@@ -362,5 +362,7 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
-KafkaDB.db
+*.db
+*.db-wal
+*.db-shm
 .idea

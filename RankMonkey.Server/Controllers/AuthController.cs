@@ -1,6 +1,5 @@
 using System.Security.Claims;
 using RankMonkey.Server.Services;
-using RankMonkey.Shared.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 
@@ -44,7 +43,6 @@ public class AuthController(AuthService authService, JwtService jwtService) : Co
     [HttpPost("logout")]
     public IActionResult Logout()
     {
-        // Server-side logout logic (if needed)
         return Ok();
     }
 }
