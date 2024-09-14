@@ -1,16 +1,14 @@
-using System.Net.Http.Headers;
 using System.Security.Claims;
-using System.Text.Json;
 using Microsoft.AspNetCore.Components.Authorization;
 using RankMonkey.Client.Services;
 
 namespace RankMonkey.Client.Auth;
 
 public class CustomAuthStateProvider(HttpClient httpClient, ILocalStorageService storage)
-        : AuthenticationStateProvider
+    : AuthenticationStateProvider
 {
     private const string AUTH_TOKEN = "authToken";
-    private readonly AuthenticationState _anonymous = new (new ClaimsPrincipal(new ClaimsIdentity()));
+    private readonly AuthenticationState _anonymous = new(new ClaimsPrincipal(new ClaimsIdentity()));
 
     public override async Task<AuthenticationState> GetAuthenticationStateAsync()
     {
@@ -27,6 +25,15 @@ public class CustomAuthStateProvider(HttpClient httpClient, ILocalStorageService
 
         var authState = CreateAuthState(token);
         NotifyAuthenticationStateChanged(Task.FromResult(authState));
+    }
+
+    public async Task MarkUserAsLoggedOut()
+    {
+        await storage.RemoveItemAsync(AUTH_TOKEN);
+
+        ClearAuthorizationState();
+
+        NotifyAuthenticationStateChanged(Task.FromResult(_anonymous));
     }
 
     private AuthenticationState CreateAuthState(string token)
@@ -47,17 +54,8 @@ public class CustomAuthStateProvider(HttpClient httpClient, ILocalStorageService
         httpClient.DefaultRequestHeaders.Authorization = new("Bearer", token);
     }
 
-    private void ClearAuthenticationState()
+    private void ClearAuthorizationState()
     {
         httpClient.DefaultRequestHeaders.Authorization = null;
-    }
-
-    public async Task MarkUserAsLoggedOut()
-    {
-        await storage.RemoveItemAsync(AUTH_TOKEN);
-
-        ClearAuthenticationState();
-
-        NotifyAuthenticationStateChanged(Task.FromResult(_anonymous));
     }
 }

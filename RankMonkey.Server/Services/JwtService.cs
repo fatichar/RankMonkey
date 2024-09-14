@@ -28,13 +28,14 @@ public class JwtService
                                   ?? DEFAULT_TOKEN_EXPIRATION_IN_HOURS;
     }
 
-    public string GenerateToken(UserInfo user)
+    public string GenerateToken(UserDto user)
     {
         var claims = new List<Claim>
         {
             new(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new(ClaimTypes.Email, user.Email),
-            new(ClaimTypes.Name, user.Name)
+            new(ClaimTypes.Name, user.Name),
+            new(ClaimTypes.Role, user.Role) // Add this line
         };
 
         var token = new JwtSecurityToken(

@@ -1,20 +1,20 @@
-using System.Security.Claims;
 using RankMonkey.Server.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using RankMonkey.Shared.Models;
 
 namespace RankMonkey.Server.Controllers;
 
-[Route("api/[controller]")]
+[Route("api/auth")]
 [ApiController]
 public class AuthController(AuthService authService, JwtService jwtService) : ControllerBase
 {
-    [HttpPost("google-login")]
-    public async Task<IActionResult> GoogleLogin([FromBody] string idToken)
+    [HttpPost("google")]
+    public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginRequest request)
     {
         try
         {
-            var user = await authService.VerifyGoogleToken(idToken);
+            var user = await authService.VerifyGoogleToken(request.IdToken);
             if (user == null)
                 return Unauthorized();
 
@@ -25,18 +25,6 @@ public class AuthController(AuthService authService, JwtService jwtService) : Co
         {
             return BadRequest(ex.Message);
         }
-    }
-
-    [Authorize]
-    [HttpGet("user")]
-    public IActionResult GetUser()
-    {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userId))
-            return Unauthorized();
-
-        var userInfo = authService.GetUser(userId);
-        return Ok(userInfo);
     }
 
     [Authorize]

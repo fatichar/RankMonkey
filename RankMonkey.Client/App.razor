@@ -1,21 +1,15 @@
 @using RankMonkey.Client.Shared
+@using Microsoft.AspNetCore.Components.Authorization
 
 <CascadingAuthenticationState>
     <Router AppAssembly="@typeof(App).Assembly">
         <Found Context="routeData">
             <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
                 <NotAuthorized>
-                    @if (context.User.Identity?.IsAuthenticated != true)
-                    {
-                        <p>You are not authorized to access this resource. Please <a href="api/auth/login">log in</a>.</p>
-                    }
-                    else
-                    {
-                        <p>You are not authorized to access this resource.</p>
-                    }
+                    <RedirectToLogin />
                 </NotAuthorized>
                 <Authorizing>
-                    <p>Authorization in progress...</p>
+                    <LoadingIndicator />
                 </Authorizing>
             </AuthorizeRouteView>
         </Found>
@@ -28,4 +22,11 @@
     </Router>
 </CascadingAuthenticationState>
 
-@* <LoginDisplay/> *@
+@code {
+    [Inject] private NavigationManager NavigationManager { get; set; } = default!;
+
+    private void RedirectToLogin()
+    {
+        NavigationManager.NavigateTo("/login", forceLoad: true);
+    }
+}

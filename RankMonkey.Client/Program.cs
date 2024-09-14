@@ -6,6 +6,8 @@ using RankMonkey.Client.Auth;
 using RankMonkey.Client.Services;
 using Serilog;
 using Serilog.Extensions.Logging;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -21,9 +23,18 @@ Log.Logger = new LoggerConfiguration()
 builder.Logging.AddProvider(new SerilogLoggerProvider(Log.Logger));
 
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+
+// Configure JSON serialization options
+builder.Services.AddScoped<JsonSerializerOptions>(_ => new JsonSerializerOptions
+{
+    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+    Converters = { new JsonStringEnumConverter() }
+});
+
 builder.Services.AddScoped<ILocalStorageService, LocalStorageService>();
 builder.Services.AddAuthorizationCore();
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
+builder.Services.AddScoped<CustomAuthStateProvider>();
 
 // Add this line to load the configuration
 builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);

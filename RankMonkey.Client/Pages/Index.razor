@@ -1,6 +1,6 @@
 @page "/"
+@page "/Login"
 
-@using System.Text.Json.Serialization
 @using RankMonkey.Client.Auth
 @using RankMonkey.Client.Services
 @using RankMonkey.Shared.Models
@@ -12,6 +12,7 @@
 @inject ILocalStorageService LocalStorage
 @inject ILogger<Index> Logger
 @inject IConfiguration Configuration
+@inject System.Text.Json.JsonSerializerOptions JsonOptions
 
 <h1>RankMonkey</h1>
 
@@ -88,7 +89,7 @@
             var response = await Http.PostAsJsonAsync(LoginApi, googleToken);
             if (response.IsSuccessStatusCode)
             {
-                var token = await response.Content.ReadFromJsonAsync<TokenResponse>();
+                var token = await response.Content.ReadFromJsonAsync<TokenResponse>(JsonOptions);
                 if (token != null)
                 {
                     Logger.LogInformation("Login successful");
@@ -119,17 +120,10 @@
 
     private async Task SignOut()
     {
-        await LocalStorage.RemoveItemAsync("authToken");
-        AuthStateProvider.MarkUserAsLoggedOut();
-
         try
         {
             var response = await Http.PostAsync(LogoutApi, null);
-            if (response.IsSuccessStatusCode)
-            {
-                NavigationManager.NavigateTo("/", true);
-            }
-            else
+            if (!response.IsSuccessStatusCode)
             {
                 ErrorMessage = "Failed to sign out";
                 Logger.LogError("Failed to sign out");
@@ -137,8 +131,12 @@
         }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            throw;
+            Logger.LogError(e, "SignOut error");
+        }
+        finally
+        {
+            await AuthStateProvider.MarkUserAsLoggedOut();
+            NavigationManager.NavigateTo("/", true);
         }
     }
 }

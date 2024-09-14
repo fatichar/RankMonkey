@@ -8,6 +8,7 @@ public class MappingProfile : Profile
 {
     public MappingProfile()
     {
-        CreateMap<User, UserInfo>().ReverseMap();
+        CreateMap<User, UserDto>()
+            .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.Role));
     }
 }
