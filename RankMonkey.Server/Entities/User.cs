@@ -26,14 +26,11 @@ public class User
     public bool IsActive { get; set; } = true;
 
     [Column("created_at")]
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; }
 
     [Column("last_login_at")]
-    public DateTime? LastLoginAt { get; set; }
+    public DateTime LastLoginAt { get; set; }
 
     [Column("role_id")]
-    public Guid? RoleId { get; set; }
-
-    [ForeignKey("RoleId")]
-    public Role Role { get; set; }
+    public Guid RoleId { get; set; }
 }

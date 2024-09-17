@@ -12,8 +12,8 @@ public class Role
 
     [Column("name")]
     [Required]
-    public string Name { get; set; }
+    public required string Name { get; set; }
 
     [Column("description")]
-    public string Description { get; set; }
+    public string? Description { get; set; }
 }

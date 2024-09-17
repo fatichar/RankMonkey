@@ -12,7 +12,7 @@ public class CustomAuthStateProvider(HttpClient httpClient, ILocalStorageService
 
     public override async Task<AuthenticationState> GetAuthenticationStateAsync()
     {
-        var token = await storage.GetItemAsync<string>(AUTH_TOKEN);
+        var token = await storage.TryGetItemAsync<string>(AUTH_TOKEN);
 
         return CreateAuthState(token);
     }
@@ -36,7 +36,7 @@ public class CustomAuthStateProvider(HttpClient httpClient, ILocalStorageService
         NotifyAuthenticationStateChanged(Task.FromResult(_anonymous));
     }
 
-    private AuthenticationState CreateAuthState(string token)
+    private AuthenticationState CreateAuthState(string? token)
     {
         if (string.IsNullOrWhiteSpace(token))
         {

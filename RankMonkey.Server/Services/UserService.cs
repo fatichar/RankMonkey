@@ -56,18 +56,27 @@ public class UserService(ApplicationDbContext context, IMapper mapper)
 
     public async Task<UserDto> CreateUserAsync(GoogleJsonWebSignature.Payload payload)
     {
-        var isFirstUser = !await context.Users.AnyAsync();
-        var roleName = isFirstUser ? "Admin" : "User";
+        var now = DateTime.UtcNow;
         var user = new User
         {
             Email = payload.Email,
             Name = payload.Name,
             GoogleId = payload.Subject,
-            RoleId = Guid.Parse(roleName)
+            RoleId = await SuggestRoleId(context),
+            IsActive = true,
+            CreatedAt = now,
+            LastLoginAt = now
         };
         context.Users.Add(user);
         await context.SaveChangesAsync();
         return ToModel(user);
+    }
+
+    private static async Task<Guid> SuggestRoleId(ApplicationDbContext context)
+    {
+        var isFirstUser = !await context.Users.AnyAsync();
+        var roleName = isFirstUser ? "Admin" : "User";
+        return Guid.Parse(roleName);
     }
 
     private UserDto ToModel(User user)

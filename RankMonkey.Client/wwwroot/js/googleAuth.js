@@ -40,7 +40,11 @@ function googleSignIn() {
                 if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
                     console.log("Google Sign-In not displayed or skipped:", notification);
                     reject('Google Sign-In was not displayed or was skipped');
+                } else if (notification.isDismissedMoment()) {
+                    reject('Google Sign-In was dismissed');
                 }
+                // If we get here, the sign-in is in progress, but we don't have a way to know when it's done
+                // The handleCredentialResponse function will be called separately when sign-in is complete
             });
         }
     });

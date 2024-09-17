@@ -1,13 +1,4 @@
-@inject IJSRuntime JSRuntime
-
 <div class="loading-indicator">
     <div class="spinner"></div>
     <p>Loading...</p>
 </div>
-
-@code {
-    protected override async Task OnInitializedAsync()
-    {
-        await JSRuntime.InvokeVoidAsync("import", "./css/LoadingIndicator.css");
-    }
-}

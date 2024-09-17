@@ -6,7 +6,7 @@ namespace RankMonkey.Client.Services;
 
 public class LocalStorageService(IJSRuntime jsRuntime, ILogger<LocalStorageService> logger) : ILocalStorageService
 {
-    private const string LOCALSTORAGE_GETITEM = "localStorage.getItem";
+    private const string LOCALSTORAGE_GET_ITEM = "localStorage.getItem";
 
     private readonly JsonSerializerOptions _jsonOptions = new()
     {
@@ -16,28 +16,28 @@ public class LocalStorageService(IJSRuntime jsRuntime, ILogger<LocalStorageServi
 
     public async Task<T> GetItemAsync<T>(string key)
     {
-        var json = await jsRuntime.InvokeAsync<string?>(LOCALSTORAGE_GETITEM, key);
+        var item = await TryGetItemAsync<T>(key);
 
-        if (json == null)
+        if (item == null)
         {
-            throw new InvalidOperationException("Key not found in local storage");
+            throw new KeyNotFoundException($"Key {key} not found in local storage");
         }
 
-        return JsonSerializer.Deserialize<T>(json, _jsonOptions) ??
-               throw new InvalidDataException($"Failed to deserialize json: {json} for key: {key}");
+        return item;
     }
 
     public async Task<T?> TryGetItemAsync<T>(string key)
     {
+        var json = await jsRuntime.InvokeAsync<string?>(LOCALSTORAGE_GET_ITEM, key);
+
         try
         {
-            return await GetItemAsync<T>(key);
+            return json == null ? default : JsonSerializer.Deserialize<T>(json, _jsonOptions);
         }
-        catch (Exception e)
+        catch (JsonException e)
         {
-            logger.LogError(e, "Failed to get item from local storage");
-        };
-        return default;
+            throw new InvalidDataException($"Failed to deserialize json: {json} for key: {key}");
+        }
     }
 
     public async Task SetItemAsync<T>(string key, T value)

@@ -36,7 +36,7 @@
 
 @code {
     private string ServerUrl => Configuration["ServerUrl"] ?? "https://rankmonkey.in/";
-    private string LoginApi => $"{ServerUrl}api/auth/google-login";
+    private string LoginApi => $"{ServerUrl}api/auth/google";
     private string LogoutApi => $"{ServerUrl}api/auth/logout";
     private string _errorMessage = string.Empty;
     private string ErrorMessage
@@ -84,9 +84,10 @@
     private async Task SignIn(string googleToken)
     {
         Logger.LogInformation($"SignIn called with token length: {googleToken.Length}");
+        var request = new GoogleLoginRequest(googleToken);
         try
         {
-            var response = await Http.PostAsJsonAsync(LoginApi, googleToken);
+            var response = await Http.PostAsJsonAsync(LoginApi, request);
             if (response.IsSuccessStatusCode)
             {
                 var token = await response.Content.ReadFromJsonAsync<TokenResponse>(JsonOptions);

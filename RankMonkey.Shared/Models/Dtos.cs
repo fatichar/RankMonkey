@@ -2,9 +2,10 @@ using System.Text.Json.Serialization;
 
 namespace RankMonkey.Shared.Models;
 
-public class GoogleLoginRequest
+public class GoogleLoginRequest(string idToken)
 {
-    public string IdToken { get; set; } = string.Empty;
+    [JsonPropertyName("idToken")]
+    public string IdToken { get; set; } = idToken;
 }
 
 public class UpdateRoleRequest
@@ -25,7 +26,7 @@ public class UserDto(string id, string name, string email)
 
     [JsonPropertyName("role")]
 
-    public string Role { get; set; }
+    public required string Role { get; set; }
 }
 
 public class TokenResponse(string token)
