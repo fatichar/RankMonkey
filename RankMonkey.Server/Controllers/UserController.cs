@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using RankMonkey.Server.Entities;
 using RankMonkey.Server.Services;
 using RankMonkey.Shared.Models;
 
@@ -8,7 +9,7 @@ namespace RankMonkey.Server.Controllers;
 
 [Route("api/users")]
 [ApiController]
-public class UserController(UserService userService) : Controller
+public class UserController(UserService userService, ILogger<UserController> logger) : ControllerBase
 {
     [Authorize]
     [HttpGet("me")]
@@ -22,8 +23,8 @@ public class UserController(UserService userService) : Controller
         return Ok(userInfo);
     }
 
-    [Authorize(Roles = "Admin")]
-    [HttpGet("users/{userId}")]
+    [Authorize(Roles = Role.ADMIN_ROLE_NAME)]
+    [HttpGet("{userId:guid}")]
     public async Task<IActionResult> GetUser(Guid userId)
     {
         var user = await userService.GetUserById(userId);
@@ -33,8 +34,8 @@ public class UserController(UserService userService) : Controller
         return Ok(user);
     }
 
-    [Authorize(Roles = "Admin")]
-    [HttpPut("users/{userId}/role")]
+    [Authorize(Roles = Role.ADMIN_ROLE_NAME)]
+    [HttpPut("{userId:guid}/role")]
     public async Task<IActionResult> UpdateUserRole(Guid userId, [FromBody] UpdateRoleRequest request)
     {
         try
@@ -51,7 +52,8 @@ public class UserController(UserService userService) : Controller
         }
         catch (Exception ex)
         {
-            return StatusCode(500, "An error occurred while updating the user role.");
+            logger.LogError(ex, "An error occurred while updating the user role.");
+            return StatusCode(500, $"An error occurred while updating the user role: {ex.Message}");
         }
     }
 }

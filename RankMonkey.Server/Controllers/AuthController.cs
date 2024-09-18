@@ -19,7 +19,7 @@ public class AuthController(AuthService authService, JwtService jwtService) : Co
                 return Unauthorized();
 
             var jwtToken = jwtService.GenerateToken(user);
-            return Ok(new { Token = jwtToken });
+            return Ok(new TokenResponse(jwtToken));
         }
         catch (Exception ex)
         {

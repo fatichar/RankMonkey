@@ -30,7 +30,7 @@ public class UserService(ApplicationDbContext context, IMapper mapper)
         if (!IsValidRole(newRole))
             throw new ArgumentException("Invalid role specified");
 
-        user.RoleId = Guid.Parse(newRole);
+        user.RoleName = newRole;
         await context.SaveChangesAsync();
 
         return ToModel(user);
@@ -44,7 +44,7 @@ public class UserService(ApplicationDbContext context, IMapper mapper)
 
     private bool IsValidRole(string role)
     {
-        return context.Roles.FirstOrDefault(r => r.Name == role) != null;
+        return context.Roles.Any(r => r.Name == role);
     }
 
     public async Task<UserDto?> GetUserAsync(GoogleJsonWebSignature.Payload payload)
@@ -61,8 +61,7 @@ public class UserService(ApplicationDbContext context, IMapper mapper)
         {
             Email = payload.Email,
             Name = payload.Name,
-            GoogleId = payload.Subject,
-            RoleId = await SuggestRoleId(context),
+            RoleName = await SuggestRole(context),
             IsActive = true,
             CreatedAt = now,
             LastLoginAt = now
@@ -72,11 +71,11 @@ public class UserService(ApplicationDbContext context, IMapper mapper)
         return ToModel(user);
     }
 
-    private static async Task<Guid> SuggestRoleId(ApplicationDbContext context)
+    private static async Task<string> SuggestRole(ApplicationDbContext context)
     {
         var isFirstUser = !await context.Users.AnyAsync();
-        var roleName = isFirstUser ? "Admin" : "User";
-        return Guid.Parse(roleName);
+        var roleName = isFirstUser ? Role.ADMIN_ROLE_NAME : Role.USER_ROLE_NAME;
+        return roleName;
     }
 
     private UserDto ToModel(User user)

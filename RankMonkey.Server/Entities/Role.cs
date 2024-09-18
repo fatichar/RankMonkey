@@ -6,14 +6,16 @@ namespace RankMonkey.Server.Entities;
 [Table("role")]
 public class Role
 {
-    [Key]
-    [Column("id")]
-    public Guid Id { get; set; }
+    public const string USER_ROLE_NAME = "User";
+    public const string ADMIN_ROLE_NAME = "Admin";
 
+    [Key]
     [Column("name")]
     [Required]
-    public required string Name { get; set; }
+    [StringLength(32, MinimumLength = 3)]
+    public required string Name { get; init; }
 
     [Column("description")]
-    public string? Description { get; set; }
+    [StringLength(256)]
+    public string? Description { get; init; }
 }

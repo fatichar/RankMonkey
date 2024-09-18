@@ -8,29 +8,31 @@ public class User
 {
     [Key]
     [Column("id")]
-    public Guid Id { get; set; }
+    public Guid Id { get; init; }
 
     [Column("name")]
-    public string Name { get; set; }
+    [StringLength(64, MinimumLength = 2)]
+    public required string Name { get; set; }
 
     [Column("email")]
     [EmailAddress]
     [Required]
-    public string Email { get; set; }
+    [StringLength(256)]
+    public required string Email { get; set; }
 
-    [Column("google_id")]
-    [Required]
-    public string GoogleId { get; set; }
+    [Column("role_name")]
+    [StringLength(32, MinimumLength = 3)]
+    public required string RoleName { get; set; }
+
+    [ForeignKey("RoleName")]
+    public Role Role { get; set; } = null!;
 
     [Column("is_active")]
     public bool IsActive { get; set; } = true;
 
     [Column("created_at")]
-    public DateTime CreatedAt { get; set; }
+    public DateTime CreatedAt { get; init; }
 
     [Column("last_login_at")]
     public DateTime LastLoginAt { get; set; }
-
-    [Column("role_id")]
-    public Guid RoleId { get; set; }
 }

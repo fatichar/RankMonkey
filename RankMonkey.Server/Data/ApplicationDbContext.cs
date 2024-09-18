@@ -17,18 +17,16 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
     private static void SeedRoles(ModelBuilder modelBuilder)
     {
-        var userRole = new Role
-        {
-            Id = Guid.NewGuid(),
-            Name = "User",
-            Description = "Default user role"
-        };
-
         var adminRole = new Role
         {
-            Id = Guid.NewGuid(),
-            Name = "Admin",
+            Name = Role.ADMIN_ROLE_NAME,
             Description = "Admin role"
+        };
+
+        var userRole = new Role
+        {
+            Name = Role.USER_ROLE_NAME,
+            Description = "Default user role"
         };
 
         modelBuilder.Entity<Role>().HasData(

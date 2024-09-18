@@ -36,7 +36,7 @@ public class JwtUtil
             pairs.Remove(ClaimTypes.Role);
         }
 
-        claims.AddRange(pairs.Select(kvp => new Claim(kvp.Key, kvp.Value.ToString())));
+        claims.AddRange(pairs.Select(kvp => new Claim(kvp.Key, kvp.Value.ToString()!)));
 
         return claims;
     }

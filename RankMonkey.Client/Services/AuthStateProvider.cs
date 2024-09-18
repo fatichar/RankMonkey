@@ -40,30 +40,28 @@ public class AuthStateProvider(HttpClient httpClient, ILocalStorageService local
         var claims = new List<Claim>();
         var payload = jwt.Split('.')[1];
         var jsonBytes = ParseBase64WithoutPadding(payload);
-        var keyValuePairs = JsonSerializer.Deserialize<Dictionary<string, object>>(jsonBytes);
+        var keyValuePairs = JsonSerializer.Deserialize<Dictionary<string, object>>(jsonBytes) ?? new Dictionary<string, object>();
 
-        keyValuePairs.TryGetValue(ClaimTypes.Role, out object roles);
+        keyValuePairs.TryGetValue(ClaimTypes.Role, out object? roles);
 
         if (roles != null)
         {
-            if (roles.ToString().Trim().StartsWith("["))
+            var rolesString = roles.ToString()!.Trim();
+            if (rolesString.StartsWith('['))
             {
-                var parsedRoles = JsonSerializer.Deserialize<string[]>(roles.ToString());
+                var parsedRoles = JsonSerializer.Deserialize<string[]>(rolesString) ?? Array.Empty<string>();
 
-                foreach (var parsedRole in parsedRoles)
-                {
-                    claims.Add(new Claim(ClaimTypes.Role, parsedRole));
-                }
+                claims.AddRange(parsedRoles.Select(role => new Claim(ClaimTypes.Role, role)));
             }
             else
             {
-                claims.Add(new Claim(ClaimTypes.Role, roles.ToString()));
+                claims.Add(new Claim(ClaimTypes.Role, rolesString));
             }
 
             keyValuePairs.Remove(ClaimTypes.Role);
         }
 
-        claims.AddRange(keyValuePairs.Select(kvp => new Claim(kvp.Key, kvp.Value.ToString())));
+        claims.AddRange(keyValuePairs.Select(kvp => new Claim(kvp.Key, kvp.Value.ToString()!)));
 
         return claims;
     }

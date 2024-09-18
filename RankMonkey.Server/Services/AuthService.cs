@@ -7,7 +7,6 @@ namespace RankMonkey.Server.Services;
 public class AuthService(
     IConfiguration configuration,
     UserService userService,
-    IMapper mapper,
     ILogger<AuthService> logger)
 {
     private readonly string _googleClientId = configuration["Authentication:Google:ClientId"]

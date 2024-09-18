@@ -29,8 +29,10 @@ builder.Services.AddAuthentication(options =>
 .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme)
 .AddGoogle(options =>
 {
-    options.ClientId = builder.Configuration["Authentication:Google:ClientId"];
-    options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+    string clientId = builder.Configuration["Authentication:Google:ClientId"] ?? throw new Exception("Google client ID not found");
+    string clientSecret = builder.Configuration["Authentication:Google:ClientSecret"] ?? throw new Exception("Google client secret not found");
+    options.ClientId = clientId;
+    options.ClientSecret = clientSecret;
     options.Scope.Add("profile");
     options.Scope.Add("email");
 
@@ -53,6 +55,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        string jwtKey = builder.Configuration["Jwt:SecretKey"] ?? throw new Exception("JWT secret key not found");
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
@@ -61,7 +64,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuerSigningKey = true,
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:SecretKey"]))
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
         };
     });
 

@@ -36,12 +36,14 @@ public class LocalStorageService(IJSRuntime jsRuntime, ILogger<LocalStorageServi
         }
         catch (JsonException e)
         {
+            logger.LogError(e, "Failed to deserialize json: {json} for key: {key}", json, key);
             throw new InvalidDataException($"Failed to deserialize json: {json} for key: {key}");
         }
     }
 
     public async Task SetItemAsync<T>(string key, T value)
     {
+        logger.LogInformation("Setting item {key} to {value}", key, value);
         await jsRuntime.InvokeVoidAsync("localStorage.setItem", key, JsonSerializer.Serialize(value, _jsonOptions));
     }
 

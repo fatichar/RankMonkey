@@ -25,7 +25,6 @@ public class UserDto(string id, string name, string email)
     public string Email { get; init; } = email;
 
     [JsonPropertyName("role")]
-
     public required string Role { get; set; }
 }
 
