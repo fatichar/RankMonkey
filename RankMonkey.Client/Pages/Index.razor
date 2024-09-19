@@ -35,6 +35,7 @@
 }
 
 @code {
+    private string GoogleClientId => Configuration["Authentication:Google:ClientId"] ?? throw new Exception("Google client ID not found");
     private string ServerUrl => Configuration["ServerUrl"] ?? "https://rankmonkey.in/";
     private string LoginApi => $"{ServerUrl}api/auth/google";
     private string LogoutApi => $"{ServerUrl}api/auth/logout";
@@ -61,7 +62,7 @@
     {
         try
         {
-            await JsRuntime.InvokeVoidAsync("initializeGoogleSignIn");
+            await JsRuntime.InvokeVoidAsync("initializeGoogleSignIn", GoogleClientId);
             await JsRuntime.InvokeVoidAsync("renderGoogleSignInButton");
         }
         catch (Exception ex)

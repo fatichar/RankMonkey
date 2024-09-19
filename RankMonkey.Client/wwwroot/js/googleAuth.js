@@ -2,7 +2,6 @@ let googleUser = null;
 
 function waitForGoogle(callback, maxAttempts = 10, interval = 500) {
     let attempts = 0;
-
     const checkGoogle = function() {
         if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
             callback();
@@ -17,12 +16,12 @@ function waitForGoogle(callback, maxAttempts = 10, interval = 500) {
     checkGoogle();
 }
 
-function initializeGoogleSignIn() {
+function initializeGoogleSignIn(googleClientId) {
     return new Promise((resolve, reject) => {
         waitForGoogle(() => {
             console.log("Initializing Google Sign-In");
             google.accounts.id.initialize({
-                client_id: '311619847448-g63r5qbt38amike68qd3n0skbbbpsivv.apps.googleusercontent.com',
+                client_id: googleClientId,
                 callback: handleCredentialResponse
             });
             console.log("Google Sign-In initialized");
