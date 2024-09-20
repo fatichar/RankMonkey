@@ -9,7 +9,7 @@ namespace RankMonkey.Server.Controllers;
 [ApiController]
 public class AuthController(AuthService authService, JwtService jwtService) : ControllerBase
 {
-    [HttpPost("google")]
+    [HttpPost("login/google")]
     public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginRequest request)
     {
         try

@@ -22,8 +22,6 @@ Log.Logger = new LoggerConfiguration()
 // Use Serilog for logging
 builder.Logging.AddProvider(new SerilogLoggerProvider(Log.Logger));
 
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
-
 // Configure JSON serialization options
 builder.Services.AddScoped<JsonSerializerOptions>(_ => new JsonSerializerOptions
 {
@@ -38,6 +36,15 @@ builder.Services.AddScoped<CustomAuthStateProvider>();
 
 // Add this line to load the configuration
 builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+
+// Add HTTP message handler for authorization
+builder.Services.AddScoped<AuthorizationMessageHandler>();
+builder.Services.AddHttpClient("AuthorizedClient",
+        client => client.BaseAddress = new Uri(builder.Configuration["ServerUrl"] ??
+                                               throw new Exception("ServerUrl not found in configuration")))
+    .AddHttpMessageHandler<AuthorizationMessageHandler>();
+
+builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("AuthorizedClient"));
 
 await builder.Build().RunAsync();
 

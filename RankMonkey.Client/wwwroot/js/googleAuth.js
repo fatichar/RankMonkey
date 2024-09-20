@@ -22,7 +22,8 @@ function initializeGoogleSignIn(googleClientId) {
             console.log("Initializing Google Sign-In");
             google.accounts.id.initialize({
                 client_id: googleClientId,
-                callback: handleCredentialResponse
+                callback: handleCredentialResponse,
+                auto_select: false, // Disable auto-select
             });
             console.log("Google Sign-In initialized");
             resolve();
@@ -62,24 +63,31 @@ function handleCredentialResponse(response) {
 
 function renderGoogleSignInButton() {
     console.log("Attempting to render Google Sign-In button");
-    if (googleUser) {
-        console.log("User already signed in, skipping button render");
-        return;
-    }
-
     const buttonElement = document.getElementById("googleSignInButton");
     if (!buttonElement) {
-        console.log("Google Sign-In button element not found, it may not be necessary in this view");
+        console.log("Google Sign-In button element not found");
         return;
     }
 
-    waitForGoogle(() => {
-        google.accounts.id.renderButton(
-            buttonElement,
-            { theme: "outline", size: "large", type: "standard" }
-        );
-        console.log("Google Sign-In button rendered");
-    });
+    google.accounts.id.renderButton(
+        buttonElement,
+        {
+            type: "standard",
+            theme: "outline",
+            size: "large",
+            text: "signin_with", // This will show "Sign in with Google" text
+            shape: "rectangular",
+            logo_alignment: "left",
+            width: 250 // Adjust as needed
+        }
+    );
+    console.log("Google Sign-In button rendered");
+}
+
+function signOut() {
+    google.accounts.id.disableAutoSelect();
+    googleUser = null;
+    console.log("User signed out");
 }
 
 // Don't initialize here, we'll do it from Blazor
