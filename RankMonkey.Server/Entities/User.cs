@@ -27,12 +27,20 @@ public class User
     [ForeignKey("RoleName")]
     public Role Role { get; set; } = null!;
 
-    [Column("is_active")]
-    public bool IsActive { get; set; } = true;
+    [Column("is_dummy")]
+    public bool IsDummy { get; set; } = false;
 
     [Column("created_at")]
     public DateTime CreatedAt { get; init; }
 
     [Column("last_login_at")]
     public DateTime LastLoginAt { get; set; }
+
+    [Column("auth_type")]
+    [StringLength(32)]
+    public required string AuthType { get; set; }
+
+    [Column("external_id")]
+    [StringLength(256)]
+    public string? ExternalId { get; set; }
 }

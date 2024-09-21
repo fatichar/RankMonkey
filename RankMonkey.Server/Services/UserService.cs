@@ -1,24 +1,71 @@
 ﻿using AutoMapper;
-using Google.Apis.Auth;
 using Microsoft.EntityFrameworkCore;
 using RankMonkey.Server.Data;
 using RankMonkey.Server.Entities;
+using RankMonkey.Server.Pocos;
 using RankMonkey.Shared.Models;
 
 namespace RankMonkey.Server.Services;
 
 public class UserService(ApplicationDbContext context, IMapper mapper)
 {
-    public UserDto GetUser(string userId)
+    // region Public Methods
+    // region Create
+    public async Task<UserDto> CreateUserAsync(CreateUserDto newUser)
     {
-        var guidUserId = Guid.Parse(userId);
-        var user = context.Users.FirstOrDefault(u => u.Id == guidUserId);
+        var now = DateTime.UtcNow;
+        var user = new User
+        {
+            Email = newUser.Email,
+            Name = newUser.Name,
+            ExternalId = newUser.ExternalId,
+            RoleName = await SuggestRole(context),
+            CreatedAt = now,
+            LastLoginAt = now,
+            AuthType = newUser.AuthType
+        };
+        context.Users.Add(user);
+        await context.SaveChangesAsync();
+        return ToModel(user);
+    }
+    // endregion Create
+
+    // region Get
+    public async Task<UserDto?> GetById(Guid userId)
+    {
+        var user = await context.Users.FindAsync(userId);
         if (user == null)
         {
-            throw new Exception("User not found");
+            throw new Exception($"User with id {userId} not found");
         }
+        return ToModel(user);
+    }
+
+    public async Task<UserDto?> GetByExternalIdAsync(string externalId)
+    {
+        var user = await context.Users.FirstOrDefaultAsync(u => u.ExternalId == externalId);
+        if (user == null)
+            return null;
 
         return ToModel(user);
+    }
+    // endregion Get
+
+    // region Update
+    public async Task<Result<UserDto>> UpdateUserAsync(UserDto user)
+    {
+        var existingUser = await context.Users.FindAsync(user.Id);
+        if (existingUser == null)
+            return Result.Failure<UserDto>("User not found");
+
+        existingUser.Email = user.Email;
+        existingUser.Name = user.Name;
+        existingUser.RoleName = user.Role;
+
+        context.Users.Update(existingUser);
+        await context.SaveChangesAsync();
+
+        return Result.Success(ToModel(existingUser));
     }
 
     public async Task<UserDto?> UpdateUserRole(Guid userId, string newRole)
@@ -35,51 +82,24 @@ public class UserService(ApplicationDbContext context, IMapper mapper)
 
         return ToModel(user);
     }
+    // endregion Update
+    // endregion Public Methods
 
-    public async Task<UserDto?> GetUserById(Guid userId)
-    {
-        var user = await context.Users.FindAsync(userId);
-        return user != null ? ToModel(user) : null;
-    }
-
+    // region Private Methods
     private bool IsValidRole(string role)
     {
         return context.Roles.Any(r => r.Name == role);
     }
 
-    public async Task<UserDto?> GetUserAsync(GoogleJsonWebSignature.Payload payload)
-    {
-        var user = await context.Users.FirstOrDefaultAsync(u => u.Email == payload.Email);
-
-        return user == null ? null : ToModel(user);
-    }
-
-    public async Task<UserDto> CreateUserAsync(GoogleJsonWebSignature.Payload payload)
-    {
-        var now = DateTime.UtcNow;
-        var user = new User
-        {
-            Email = payload.Email,
-            Name = payload.Name,
-            RoleName = await SuggestRole(context),
-            IsActive = true,
-            CreatedAt = now,
-            LastLoginAt = now
-        };
-        context.Users.Add(user);
-        await context.SaveChangesAsync();
-        return ToModel(user);
-    }
-
     private static async Task<string> SuggestRole(ApplicationDbContext context)
     {
         var isFirstUser = !await context.Users.AnyAsync();
-        var roleName = isFirstUser ? Role.ADMIN_ROLE_NAME : Role.USER_ROLE_NAME;
+        var roleName = isFirstUser ? RoleNames.ADMIN_ROLE_NAME : RoleNames.USER_ROLE_NAME;
         return roleName;
     }
+    // endregion Private Methods
 
-    private UserDto ToModel(User user)
-    {
-        return mapper.Map<UserDto>(user);
-    }
+    // region Helper Methods
+    private UserDto ToModel(User user) => mapper.Map<UserDto>(user);
+    // endregion Helper Methods
 }

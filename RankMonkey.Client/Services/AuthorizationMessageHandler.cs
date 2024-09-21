@@ -1,6 +1,4 @@
 using System.Net.Http.Headers;
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 
 namespace RankMonkey.Client.Services;
 

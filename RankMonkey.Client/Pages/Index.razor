@@ -4,6 +4,7 @@
 @using RankMonkey.Client.Auth
 @using RankMonkey.Client.Services
 @using RankMonkey.Shared.Models
+@using Microsoft.AspNetCore.Components.WebAssembly.Hosting
 
 @inject HttpClient Http
 @inject CustomAuthStateProvider AuthStateProvider
@@ -13,17 +14,22 @@
 @inject ILogger<Index> Logger
 @inject IConfiguration Configuration
 @inject System.Text.Json.JsonSerializerOptions JsonOptions
+@inject IWebAssemblyHostEnvironment Env
 
 <h1>RankMonkey</h1>
 
 <AuthorizeView>
     <Authorized>
         <p>Welcome, @context.User.Identity?.Name!</p>
-        <button @onclick="SignOut">Sign Out</button>
+        <button @onclick="Logout">Sign Out</button>
     </Authorized>
     <NotAuthorized>
         <p>Please sign in to use the app.</p>
         <div id="googleSignInButton"></div>
+        @if (Env.IsDevelopment())
+        {
+            <button @onclick="LoginAsGuest">Sign In As Guest</button>
+        }
     </NotAuthorized>
 </AuthorizeView>
 
@@ -36,7 +42,8 @@
 
 @code {
     private string GoogleClientId => Configuration["Authentication:Google:ClientId"] ?? throw new InvalidOperationException("Google Client ID not found in configuration.");
-    private const string LOGIN_API = "api/auth/login/google";
+    private const string GOOGLE_LOGIN_API = "api/auth/login/google";
+    private const string GUEST_LOGIN_API = "api/auth/login/guest";
     private const string LOGOUT_API = "api/auth/logout";
     private string _errorMessage = string.Empty;
     private string ErrorMessage
@@ -73,44 +80,22 @@
     }
 
     [JSInvokable]
-    public static async Task HandleGoogleSignIn(string googleToken)
+    public static async Task HandleGoogleLogin(string googleToken)
     {
         if (_instance != null)
                 {
-            await _instance.SignIn(googleToken);
+            await _instance.LoginUsingGoogle(googleToken);
         }
     }
 
-    private async Task SignIn(string googleToken)
+    private async Task LoginUsingGoogle(string googleToken)
     {
         Logger.LogInformation($"SignIn called with token length: {googleToken.Length}");
         var request = new GoogleLoginRequest(googleToken);
         try
         {
-            var response = await Http.PostAsJsonAsync(LOGIN_API, request);
-            if (response.IsSuccessStatusCode)
-            {
-                var token = await response.Content.ReadFromJsonAsync<TokenResponse>(JsonOptions);
-                if (token != null)
-                {
-                    Logger.LogInformation("Login successful");
-
-                    await AuthStateProvider.MarkUserAsAuthenticated(token.Token);
-
-                    NavigationManager.NavigateTo("/", true);
-                }
-                else
-                {
-                    ErrorMessage = "Failed to deserialize token response";
-                    Logger.LogError("Failed to deserialize token response");
-                }
-            }
-            else
-            {
-                var errorContent = await response.Content.ReadAsStringAsync();
-                ErrorMessage = $"Login failed: {response.ReasonPhrase}. Error: {errorContent}";
-                Logger.LogError("Login failed: {ReasonPhrase}. Error: {ErrorContent}", response.ReasonPhrase, errorContent);
-            }
+            var response = await Http.PostAsJsonAsync(GOOGLE_LOGIN_API, request);
+            await HandleLoginResponse(response);
         }
         catch (Exception ex)
         {
@@ -119,7 +104,48 @@
         }
     }
 
-    private async Task SignOut()
+    private async Task HandleLoginResponse(HttpResponseMessage response)
+    {
+        if (response.IsSuccessStatusCode)
+        {
+            var token = await response.Content.ReadFromJsonAsync<LoginResponse>(JsonOptions);
+            if (token != null)
+            {
+                Logger.LogInformation("Login successful");
+
+                await AuthStateProvider.MarkUserAsAuthenticated(token.Token);
+
+                NavigationManager.NavigateTo("/", true);
+            }
+            else
+            {
+                ErrorMessage = "Failed to deserialize token response";
+                Logger.LogError("Failed to deserialize token response");
+            }
+        }
+        else
+        {
+            var errorContent = await response.Content.ReadAsStringAsync();
+            ErrorMessage = $"Login failed: {response.ReasonPhrase}. Error: {errorContent}";
+            Logger.LogError("Login failed: {ReasonPhrase}. Error: {ErrorContent}", response.ReasonPhrase, errorContent);
+        }
+    }
+
+    private async Task LoginAsGuest()
+    {
+        try
+        {
+            var response = await Http.PostAsync(GUEST_LOGIN_API, null);
+            await HandleLoginResponse(response);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
+
+    private async Task Logout()
     {
         try
         {

@@ -1,7 +1,6 @@
 ﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using RankMonkey.Server.Entities;
 using RankMonkey.Server.Services;
 using RankMonkey.Shared.Models;
 
@@ -19,22 +18,22 @@ public class UserController(UserService userService, ILogger<UserController> log
         if (string.IsNullOrEmpty(userId))
             return Unauthorized();
 
-        var userInfo = userService.GetUser(userId);
+        var userInfo = userService.GetById(Guid.Parse(userId));
         return Ok(userInfo);
     }
 
-    [Authorize(Roles = Role.ADMIN_ROLE_NAME)]
+    [Authorize(Roles = RoleNames.ADMIN_ROLE_NAME)]
     [HttpGet("{userId:guid}")]
     public async Task<IActionResult> GetUser(Guid userId)
     {
-        var user = await userService.GetUserById(userId);
+        var user = await userService.GetById(userId);
         if (user == null)
             return NotFound();
 
         return Ok(user);
     }
 
-    [Authorize(Roles = Role.ADMIN_ROLE_NAME)]
+    [Authorize(Roles = RoleNames.ADMIN_ROLE_NAME)]
     [HttpPut("{userId:guid}/role")]
     public async Task<IActionResult> UpdateUserRole(Guid userId, [FromBody] UpdateRoleRequest request)
     {

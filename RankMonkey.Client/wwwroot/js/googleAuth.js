@@ -53,11 +53,11 @@ function googleSignIn() {
 function handleCredentialResponse(response) {
     console.log("Received Google Sign-In response", response);
     googleUser = response.credential;
-    if (window.handleGoogleSignIn) {
+    if (window.handleGoogleLogin) {
         console.log("Calling Blazor handleGoogleSignIn");
-        window.handleGoogleSignIn(googleUser);
+        window.handleGoogleLogin(googleUser);
     } else {
-        console.error("window.handleGoogleSignIn is not defined");
+        console.error("window.handleGoogleLogin is not defined");
     }
 }
 

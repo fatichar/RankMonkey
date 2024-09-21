@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using RankMonkey.Server.Entities;
+using RankMonkey.Shared.Models;
 
 namespace RankMonkey.Server.Data;
 
@@ -19,13 +20,13 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     {
         var adminRole = new Role
         {
-            Name = Role.ADMIN_ROLE_NAME,
+            Name = RoleNames.ADMIN_ROLE_NAME,
             Description = "Admin role"
         };
 
         var userRole = new Role
         {
-            Name = Role.USER_ROLE_NAME,
+            Name = RoleNames.USER_ROLE_NAME,
             Description = "Default user role"
         };
 

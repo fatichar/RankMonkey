@@ -6,9 +6,6 @@ namespace RankMonkey.Server.Entities;
 [Table("role")]
 public class Role
 {
-    public const string USER_ROLE_NAME = "User";
-    public const string ADMIN_ROLE_NAME = "Admin";
-
     [Key]
     [Column("name")]
     [Required]

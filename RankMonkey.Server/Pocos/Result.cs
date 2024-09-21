@@ -19,10 +19,10 @@ public sealed class Result
     public static Result Success()
         => new(isSuccess: true, message: null!, ResultType.Success);
 
-    public static Result<T> Failure<T>(ResultType type = ResultType.Failure, string? errorMessage = "")
+    public static Result<T> Failure<T>(string? errorMessage = "", ResultType type = ResultType.Failure)
         => new(isSuccess: false, default!, message: errorMessage!, type);
 
-    public static Result Failure(ResultType type = ResultType.Failure, string? errorMessage = "")
+    public static Result Failure(string? errorMessage = "", ResultType type = ResultType.Failure)
         => new(isSuccess: false, message: errorMessage!, type);
 }
 
