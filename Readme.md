@@ -17,11 +17,10 @@ The solution consists of several projects:
 ### Prerequisites
 
 - .NET 8.0 SDK
-- Visual Studio 2022 or later (optional)
 
 ### Running the Application
 
-1. Clone the repository
+1. Clone the repository github.com/fatichar/RankMonkey.git
 2. Navigate to the solution directory
 3. Add the Google Client ID, Client Secret, and JWT Secret to the user secrets:
    ```
@@ -34,5 +33,3 @@ The solution consists of several projects:
    dotnet run --project RankMonkey.Host
    ```
 5. Open a web browser and navigate to `https://localhost:6001` to access the application.
-
-Note: The first time you run the application, it may take a few moments to compile and start up all the services.
