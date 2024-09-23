@@ -40,7 +40,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             var authTypes = Enum.GetNames(typeof(AuthType));
             var authTypesString = string.Join(",", authTypes.Select(t => $"'{t}'"));
 
-            user.ToTable(t => t.HasCheckConstraint("CK_Users_AuthType", $"AuthType IN ({authTypesString})"));
+            user.ToTable(t => t.HasCheckConstraint("CK_Users_AuthType", $"auth_type IN ({authTypesString})"));
             user.HasOne(x => x.Role)
                   .WithMany()
                   .HasForeignKey(x => x.RoleId)

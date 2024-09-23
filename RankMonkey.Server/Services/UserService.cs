@@ -2,7 +2,6 @@
 using Microsoft.EntityFrameworkCore;
 using RankMonkey.Server.Data;
 using RankMonkey.Server.Entities;
-using RankMonkey.Server.Pocos;
 using RankMonkey.Shared.Models;
 
 namespace RankMonkey.Server.Services;

@@ -124,7 +124,7 @@ namespace RankMonkey.Server.Migrations
 
                     b.ToTable("user", t =>
                         {
-                            t.HasCheckConstraint("CK_Users_AuthType", "AuthType IN ('Google')");
+                            t.HasCheckConstraint("CK_Users_AuthType", "auth_type IN ('Google')");
                         });
                 });
 

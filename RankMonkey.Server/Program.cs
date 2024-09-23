@@ -79,6 +79,7 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
 
+builder.Services.AddScoped<AuthenticationService>();
 builder.Services.AddScoped<IAuthProvider, GoogleAuthProvider>();
 if (builder.Environment.IsDevelopment())
 {

@@ -1,4 +1,4 @@
-﻿namespace RankMonkey.Server.Pocos;
+﻿namespace RankMonkey.Shared.Models;
 
 public sealed class Result
 {
