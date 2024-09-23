@@ -3,23 +3,20 @@ using RankMonkey.Shared.Models;
 
 namespace RankMonkey.Server.Services;
 
-class GuestAuthService(JwtService jwtService) : IAuthService
+public class GuestAuthProvider(JwtService jwtService)
 {
-    public string Name => AuthType.GUEST;
-
-    public async Task<Result<LoginResponse>> LoginAsync(string token)
+    public Result<LoginResponse> Login()
     {
         var user = new UserDto(Guid.NewGuid().ToString(), "Guest", string.Empty)
         {
             Name = "Guest",
-            Role = RoleNames.USER_ROLE_NAME
+            Role = Roles.USER
         };
         var jwt = jwtService.GenerateToken(user);
         return Result.Success(new LoginResponse { Token = jwt });
     }
 
-    public Task LogoutAsync()
+    public void Logout()
     {
-        return Task.CompletedTask;
     }
 }

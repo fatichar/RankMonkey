@@ -7,6 +7,11 @@ namespace RankMonkey.Server.Entities;
 public class Role
 {
     [Key]
+    [Column("id")]
+    [Required]
+    [StringLength(32, MinimumLength = 3)]
+    public required string Id { get; init; }
+
     [Column("name")]
     [Required]
     [StringLength(32, MinimumLength = 3)]

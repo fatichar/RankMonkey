@@ -4,16 +4,16 @@ using RankMonkey.Shared.Models;
 
 namespace RankMonkey.Server.Services;
 
-public class GoogleAuthService(
+public class GoogleAuthProvider(
     IConfiguration configuration,
     UserService userService,
     JwtService jwtService,
-    ILogger<GoogleAuthService> logger) : IAuthService
+    ILogger<GoogleAuthProvider> logger) : IAuthProvider
 {
     private readonly string _googleClientId = configuration["Authentication:Google:ClientId"]
                                               ?? throw new Exception("Google Client ID not found");
 
-    public string Name => AuthType.GOOGLE;
+    public AuthType AuthType => AuthType.Google;
 
     public async Task<Result<LoginResponse>> LoginAsync(string token)
     {
@@ -69,7 +69,7 @@ public class GoogleAuthService(
         {
             Name = payload.Name,
             Email = payload.Email,
-            AuthType = AuthType.GOOGLE
+            AuthType = AuthType
         };
     }
     // endregion Private Methods

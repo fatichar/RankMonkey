@@ -19,7 +19,7 @@ public class UserService(ApplicationDbContext context, IMapper mapper)
             Email = newUser.Email,
             Name = newUser.Name,
             ExternalId = newUser.ExternalId,
-            RoleName = await SuggestRole(context),
+            RoleId = await SuggestRole(context),
             CreatedAt = now,
             LastLoginAt = now,
             AuthType = newUser.AuthType
@@ -60,7 +60,7 @@ public class UserService(ApplicationDbContext context, IMapper mapper)
 
         existingUser.Email = user.Email;
         existingUser.Name = user.Name;
-        existingUser.RoleName = user.Role;
+        existingUser.RoleId = user.Role;
 
         context.Users.Update(existingUser);
         await context.SaveChangesAsync();
@@ -77,7 +77,7 @@ public class UserService(ApplicationDbContext context, IMapper mapper)
         if (!IsValidRole(newRole))
             throw new ArgumentException("Invalid role specified");
 
-        user.RoleName = newRole;
+        user.RoleId = newRole;
         await context.SaveChangesAsync();
 
         return ToModel(user);
@@ -88,13 +88,13 @@ public class UserService(ApplicationDbContext context, IMapper mapper)
     // region Private Methods
     private bool IsValidRole(string role)
     {
-        return context.Roles.Any(r => r.Name == role);
+        return context.Roles.Any(r => r.Id == role);
     }
 
     private static async Task<string> SuggestRole(ApplicationDbContext context)
     {
         var isFirstUser = !await context.Users.AnyAsync();
-        var roleName = isFirstUser ? RoleNames.ADMIN_ROLE_NAME : RoleNames.USER_ROLE_NAME;
+        var roleName = isFirstUser ? Roles.ADMIN : Roles.USER;
         return roleName;
     }
     // endregion Private Methods

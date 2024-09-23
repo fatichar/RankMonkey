@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using RankMonkey.Shared.Models;
 using System.Net.Http.Json;
@@ -7,9 +6,6 @@ namespace RankMonkey.Client.Pages;
 public partial class Index
 {
     private string GoogleClientId => Configuration["Authentication:Google:ClientId"] ?? throw new InvalidOperationException("Google Client ID not found in configuration.");
-    private const string GOOGLE_LOGIN_API = "api/auth/login/google";
-    private const string GUEST_LOGIN_API = "api/auth/login/guest";
-    private const string LOGOUT_API = "api/auth/logout";
     private string _errorMessage = string.Empty;
     private string ErrorMessage
     {
@@ -23,9 +19,10 @@ public partial class Index
 
     private static Index? _instance;
 
-    protected override async Task OnInitializedAsync()
+    protected override Task OnInitializedAsync()
     {
         _instance = this;
+        return Task.CompletedTask;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -66,7 +63,7 @@ public partial class Index
         var request = new GoogleLoginRequest(googleToken);
         try
         {
-            var response = await Http.PostAsJsonAsync(GOOGLE_LOGIN_API, request);
+            var response = await Http.PostAsJsonAsync(ApiPaths.GOOGLE_LOGIN_API, request);
             await HandleLoginResponse(response);
         }
         catch (Exception ex)
@@ -107,7 +104,7 @@ public partial class Index
     {
         try
         {
-            var response = await Http.PostAsync(GUEST_LOGIN_API, null);
+            var response = await Http.PostAsync(ApiPaths.GUEST_LOGIN_API, null);
             await HandleLoginResponse(response);
         }
         catch (Exception e)
@@ -121,7 +118,7 @@ public partial class Index
     {
         try
         {
-            var response = await Http.PostAsync(LOGOUT_API, null);
+            var response = await Http.PostAsync(ApiPaths.LOGOUT_API, null);
             if (!response.IsSuccessStatusCode)
             {
                 ErrorMessage = "Failed to sign out";

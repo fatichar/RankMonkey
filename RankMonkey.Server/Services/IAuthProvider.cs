@@ -3,9 +3,9 @@ using RankMonkey.Shared.Models;
 
 namespace RankMonkey.Server.Services;
 
-public interface IAuthService
+public interface IAuthProvider
 {
-    string Name { get; }
+    AuthType AuthType { get; }
     Task<Result<LoginResponse>> LoginAsync(string token);
     Task LogoutAsync();
 }

@@ -22,7 +22,7 @@ public class UserController(UserService userService, ILogger<UserController> log
         return Ok(userInfo);
     }
 
-    [Authorize(Roles = RoleNames.ADMIN_ROLE_NAME)]
+    [Authorize(Roles = Roles.ADMIN)]
     [HttpGet("{userId:guid}")]
     public async Task<IActionResult> GetUser(Guid userId)
     {
@@ -33,7 +33,7 @@ public class UserController(UserService userService, ILogger<UserController> log
         return Ok(user);
     }
 
-    [Authorize(Roles = RoleNames.ADMIN_ROLE_NAME)]
+    [Authorize(Roles = Roles.ADMIN)]
     [HttpPut("{userId:guid}/role")]
     public async Task<IActionResult> UpdateUserRole(Guid userId, [FromBody] UpdateRoleRequest request)
     {
