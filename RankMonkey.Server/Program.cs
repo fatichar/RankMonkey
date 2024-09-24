@@ -94,7 +94,7 @@ if (builder.Environment.IsDevelopment())
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<JwtService>();
 
-builder.Services.AddScoped<FinancialDataService>();
+builder.Services.AddScoped<MetricsService>();
 
 var app = builder.Build();
 

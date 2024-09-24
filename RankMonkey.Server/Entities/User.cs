@@ -54,8 +54,4 @@ public class User
     [Column("external_id")]
     [StringLength(256)]
     public string? ExternalId { get; set; }
-
-    [Column("currency")]
-    [StringLength(3)]
-    public string Currency { get; set; } = "USD";
 }

@@ -8,7 +8,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 {
     public required DbSet<User> Users { get; init; }
     public required DbSet<Role> Roles { get; init; }
-    public required DbSet<FinancialData> FinancialData { get; init; }
+    public required DbSet<Metrics> Metrics { get; init; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -57,10 +57,18 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
                   .OnDelete(DeleteBehavior.Restrict);
         });
 
-        modelBuilder.Entity<FinancialData>(financialData =>
+        modelBuilder.Entity<Metrics>(metrics =>
         {
-            financialData.HasIndex(x => new { x.UserId, x.DataType }).IsUnique();
-            financialData.Property(x => x.DataType).HasMaxLength(32);
+            metrics.HasIndex(x => x.Income);
+            metrics.HasIndex(x => x.NetWorth);
+            metrics.Property(x => x.Currency).HasMaxLength(3).IsRequired();
+            metrics.Property(x => x.Income).HasDefaultValue(0L);
+            metrics.Property(x => x.NetWorth).HasDefaultValue(0L);
+            metrics.Property(x => x.Timestamp)
+                .HasConversion(
+                    v => new DateTimeOffset(v).ToUnixTimeSeconds(), // Convert DateTime to long
+                    v => DateTimeOffset.FromUnixTimeSeconds(v).UtcDateTime) // Convert long to DateTime
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
         });
 
         SeedRoles(modelBuilder);
