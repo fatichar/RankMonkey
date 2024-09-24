@@ -22,8 +22,6 @@ public class FinancialData
     [Column("value")]
     public long Value { get; set; }
 
-    // Remove the Currency property
-
     [Column("timestamp")]
     public DateTime Timestamp { get; set; }
 }

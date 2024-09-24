@@ -1,5 +1,6 @@
 @using RankMonkey.Client.Services
-@inject AuthenticationStateProvider AuthStateProvider
+@using RankMonkey.Client.Auth
+@inject CustomAuthStateProvider AuthStateProvider
 @inject ILocalStorageService LocalStorage
 @inject NavigationManager NavigationManager
 
@@ -11,7 +12,7 @@
     private async Task Logout()
     {
         await LocalStorage.RemoveItemAsync("authToken");
-        ((AuthStateProvider)AuthStateProvider).MarkUserAsLoggedOut();
+        await AuthStateProvider.MarkUserAsLoggedOut();
         NavigationManager.NavigateTo("/");
     }
 }

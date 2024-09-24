@@ -30,9 +30,8 @@ public class GoogleAuthProvider(
             {
                 if (IsChanged(payload, user))
                 {
-                    user.Email = payload.Email;
-                    user.Name = payload.Name;
-                    await userService.UpdateUserAsync(user);
+                    var updateRequest = new UpdateUserRequest( user.Id, payload.Name, payload.Email);
+                    await userService.UpdateUserAsync(updateRequest);
                 }
             }
             else
@@ -42,7 +41,7 @@ public class GoogleAuthProvider(
             }
 
             var jwt = jwtService.GenerateToken(user);
-            return Result.Success(new LoginResponse { Token = jwt });
+            return Result.Success(new LoginResponse(jwt));
         }
         catch (InvalidJwtException e)
         {
@@ -62,14 +61,9 @@ public class GoogleAuthProvider(
     {
         return payload.Email != existing.Email || payload.Name != existing.Name;
     }
-    private CreateUserDto CreateDto(GoogleJsonWebSignature.Payload payload)
+    private CreateUserRequest CreateDto(GoogleJsonWebSignature.Payload payload)
     {
-        return new CreateUserDto
-        {
-            Name = payload.Name,
-            Email = payload.Email,
-            AuthType = AuthType
-        };
+        return new CreateUserRequest(payload.Name, payload.Email, AuthType);
     }
     // endregion Private Methods
 }

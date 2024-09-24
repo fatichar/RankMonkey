@@ -7,7 +7,7 @@ namespace RankMonkey.Server.Services;
 
 public class FinancialDataService(ApplicationDbContext context)
 {
-    public async Task<Result<FinancialDataDto>> AddOrUpdateFinancialDataAsync(Guid userId, string dataType, decimal value)
+    public async Task<Result<FinancialDataDto>> AddOrUpdateFinancialDataAsync(Guid userId, string dataType, long value)
     {
         var existingData = await context.FinancialData
             .FirstOrDefaultAsync(fd => fd.UserId == userId && fd.DataType == dataType);

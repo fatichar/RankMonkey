@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace RankMonkey.Server.Migrations
 {
     /// <inheritdoc />
-    public partial class AddUserAndRole : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -36,10 +36,11 @@ namespace RankMonkey.Server.Migrations
                     role_name = table.Column<string>(type: "TEXT", maxLength: 32, nullable: false),
                     is_dummy = table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: false),
                     is_active = table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: true),
-                    created_at = table.Column<DateTime>(type: "TEXT", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
-                    last_login_at = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    created_at = table.Column<long>(type: "INTEGER", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
+                    last_login_at = table.Column<long>(type: "INTEGER", nullable: true),
                     auth_type = table.Column<string>(type: "TEXT", maxLength: 20, nullable: false),
-                    external_id = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true)
+                    external_id = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
+                    currency = table.Column<string>(type: "TEXT", maxLength: 3, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -53,6 +54,27 @@ namespace RankMonkey.Server.Migrations
                         onDelete: ReferentialAction.Restrict);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "financial_data",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    user_id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    data_type = table.Column<string>(type: "TEXT", maxLength: 32, nullable: false),
+                    value = table.Column<long>(type: "INTEGER", nullable: false),
+                    timestamp = table.Column<DateTime>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_financial_data", x => x.id);
+                    table.ForeignKey(
+                        name: "FK_financial_data_user_user_id",
+                        column: x => x.user_id,
+                        principalTable: "user",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.InsertData(
                 table: "role",
                 columns: new[] { "id", "description", "name" },
@@ -61,6 +83,12 @@ namespace RankMonkey.Server.Migrations
                     { "admin", "Admin role", "Admin" },
                     { "user", "Default user role", "User" }
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_financial_data_user_id_data_type",
+                table: "financial_data",
+                columns: new[] { "user_id", "data_type" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_role_name",
@@ -83,6 +111,9 @@ namespace RankMonkey.Server.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "financial_data");
+
             migrationBuilder.DropTable(
                 name: "user");
 

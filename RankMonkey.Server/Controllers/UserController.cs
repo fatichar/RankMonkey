@@ -39,7 +39,7 @@ public class UserController(UserService userService, ILogger<UserController> log
     {
         try
         {
-            var updatedUser = await userService.UpdateUserRole(userId, request.NewRole);
+            var updatedUser = await userService.UpdateUserRole(userId, request.Role);
             if (updatedUser == null)
                 return NotFound("User not found");
 

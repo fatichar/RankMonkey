@@ -1,9 +1,10 @@
 ﻿@page "/authentication/login-callback"
 
 @using RankMonkey.Client.Services
+@using RankMonkey.Client.Auth
 @inject NavigationManager NavigationManager
 @inject ILocalStorageService LocalStorage
-@inject AuthenticationStateProvider AuthStateProvider
+@inject CustomAuthStateProvider AuthStateProvider
 
 @code {
     protected override async Task OnInitializedAsync()
@@ -14,7 +15,7 @@
         if (!string.IsNullOrEmpty(token))
         {
             await LocalStorage.SetItemAsync("authToken", token);
-            ((AuthStateProvider)AuthStateProvider).MarkUserAsAuthenticated(token);
+            await AuthStateProvider.MarkUserAsAuthenticated(token);
         }
 
         NavigationManager.NavigateTo("/");

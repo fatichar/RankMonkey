@@ -11,14 +11,47 @@ using RankMonkey.Server.Data;
 namespace RankMonkey.Server.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240923181948_AddUserAndRole")]
-    partial class AddUserAndRole
+    [Migration("20240924102338_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.8");
+
+            modelBuilder.Entity("RankMonkey.Server.Entities.FinancialData", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("id");
+
+                    b.Property<string>("DataType")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("data_type");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("timestamp");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("user_id");
+
+                    b.Property<long>("Value")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("value");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "DataType")
+                        .IsUnique();
+
+                    b.ToTable("financial_data");
+                });
 
             modelBuilder.Entity("RankMonkey.Server.Entities.Role", b =>
                 {
@@ -73,11 +106,17 @@ namespace RankMonkey.Server.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("auth_type");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<long>("CreatedAt")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT")
+                        .HasColumnType("INTEGER")
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("currency");
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -102,8 +141,8 @@ namespace RankMonkey.Server.Migrations
                         .HasDefaultValue(false)
                         .HasColumnName("is_dummy");
 
-                    b.Property<DateTime?>("LastLoginAt")
-                        .HasColumnType("TEXT")
+                    b.Property<long?>("LastLoginAt")
+                        .HasColumnType("INTEGER")
                         .HasColumnName("last_login_at");
 
                     b.Property<string>("Name")
@@ -129,6 +168,17 @@ namespace RankMonkey.Server.Migrations
                         {
                             t.HasCheckConstraint("CK_Users_AuthType", "auth_type IN ('Google')");
                         });
+                });
+
+            modelBuilder.Entity("RankMonkey.Server.Entities.FinancialData", b =>
+                {
+                    b.HasOne("RankMonkey.Server.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("RankMonkey.Server.Entities.User", b =>

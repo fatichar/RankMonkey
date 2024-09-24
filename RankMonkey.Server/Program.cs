@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using RankMonkey.Server.Data;
+using RankMonkey.Server.Exceptions;
 using RankMonkey.Server.Services;
 using RankMonkey.Server.Mapping;
 
@@ -80,6 +81,8 @@ builder.Services.AddControllers()
     });
 
 builder.Services.AddAutoMapper(typeof(MappingProfile));
+
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
 builder.Services.AddScoped<AuthenticationService>();
 builder.Services.AddScoped<IAuthProvider, GoogleAuthProvider>();

@@ -7,6 +7,7 @@ namespace RankMonkey.Server.Entities;
 [Table("user")]
 public class User
 {
+    // ReSharper disable once ConvertConstructorToMemberInitializers
     public User()
     {
         IsActive = true;

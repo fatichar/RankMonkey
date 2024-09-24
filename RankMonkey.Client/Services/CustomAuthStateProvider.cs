@@ -1,8 +1,8 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Components.Authorization;
-using RankMonkey.Client.Services;
+using RankMonkey.Client.Auth;
 
-namespace RankMonkey.Client.Auth;
+namespace RankMonkey.Client.Services;
 
 public class CustomAuthStateProvider(HttpClient httpClient, ILocalStorageService storage)
     : AuthenticationStateProvider
@@ -20,8 +20,6 @@ public class CustomAuthStateProvider(HttpClient httpClient, ILocalStorageService
     public async Task MarkUserAsAuthenticated(string token)
     {
         await storage.SetItemAsync(AUTH_TOKEN, token);
-
-        SetAuthorization(token);
 
         var authState = CreateAuthState(token);
         NotifyAuthenticationStateChanged(Task.FromResult(authState));
@@ -47,11 +45,6 @@ public class CustomAuthStateProvider(HttpClient httpClient, ILocalStorageService
         var identity = new ClaimsIdentity(claims, "jwt");
         var authenticatedUser = new ClaimsPrincipal(identity);
         return new AuthenticationState(authenticatedUser);
-    }
-
-    private void SetAuthorization(string token)
-    {
-        httpClient.DefaultRequestHeaders.Authorization = new("Bearer", token);
     }
 
     private void ClearAuthorizationState()

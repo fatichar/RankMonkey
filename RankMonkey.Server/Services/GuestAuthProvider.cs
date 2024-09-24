@@ -12,7 +12,7 @@ public class GuestAuthProvider(JwtService jwtService)
             Role = Roles.USER
         };
         var jwt = jwtService.GenerateToken(user);
-        return Result.Success(new LoginResponse { Token = jwt });
+        return Result.Success(new LoginResponse(jwt));
     }
 
     public void Logout()

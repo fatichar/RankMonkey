@@ -9,20 +9,13 @@ namespace RankMonkey.Server.Controllers;
 [Authorize]
 [ApiController]
 [Route("api/[controller]")]
-public class FinancialDataController : ControllerBase
+public class FinancialDataController(FinancialDataService financialDataService) : ControllerBase
 {
-    private readonly FinancialDataService _financialDataService;
-
-    public FinancialDataController(FinancialDataService financialDataService)
-    {
-        _financialDataService = financialDataService;
-    }
-
     [HttpPost]
     public async Task<IActionResult> AddOrUpdateFinancialData([FromBody] AddFinancialDataRequest request)
     {
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        var result = await _financialDataService.AddOrUpdateFinancialDataAsync(userId, request.DataType, request.Value);
+        var result = await financialDataService.AddOrUpdateFinancialDataAsync(userId, request.DataType, request.Value);
 
         if (result.IsSuccess)
         {
@@ -35,7 +28,7 @@ public class FinancialDataController : ControllerBase
     [HttpGet("ranking/{dataType}")]
     public async Task<IActionResult> GetRanking(string dataType, [FromQuery] decimal value)
     {
-        var result = await _financialDataService.GetRankingAsync(dataType, value);
+        var result = await financialDataService.GetRankingAsync(dataType, value);
 
         if (result.IsSuccess)
         {
@@ -49,8 +42,8 @@ public class FinancialDataController : ControllerBase
     public async Task<IActionResult> GetUserFinancialData()
     {
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        var dataResult = await _financialDataService.GetUserFinancialDataAsync(userId);
-        var currencyResult = await _financialDataService.GetUserCurrencyAsync(userId);
+        var dataResult = await financialDataService.GetUserFinancialDataAsync(userId);
+        var currencyResult = await financialDataService.GetUserCurrencyAsync(userId);
 
         if (dataResult.IsSuccess && currencyResult.IsSuccess)
         {
@@ -64,7 +57,7 @@ public class FinancialDataController : ControllerBase
     public async Task<IActionResult> GetUserCurrency()
     {
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        var result = await _financialDataService.GetUserCurrencyAsync(userId);
+        var result = await financialDataService.GetUserCurrencyAsync(userId);
 
         if (result.IsSuccess)
         {

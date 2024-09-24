@@ -32,7 +32,16 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
             user.Property(x => x.IsActive).HasDefaultValue(true);
             user.Property(x => x.IsDummy).HasDefaultValue(false);
-            user.Property(x => x.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            user.Property(x => x.CreatedAt)
+            .HasConversion(
+                v => new DateTimeOffset(v).ToUnixTimeSeconds(), // Convert DateTime to long
+                v => DateTimeOffset.FromUnixTimeSeconds(v).UtcDateTime) // Convert long to DateTime
+            .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            user.Property(x => x.LastLoginAt)
+            .HasConversion(
+                v => v.HasValue ? new DateTimeOffset(v.Value).ToUnixTimeSeconds() : 0L, // Convert DateTime to long
+                v => DateTimeOffset.FromUnixTimeSeconds(v).UtcDateTime); // Convert long to DateTime
 
             user.Property(x => x.AuthType)
                 .HasConversion<string>()
@@ -51,8 +60,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         modelBuilder.Entity<FinancialData>(financialData =>
         {
             financialData.HasIndex(x => new { x.UserId, x.DataType }).IsUnique();
-            financialData.Property(x => x.DataType).HasMaxLength(50);
-            financialData.Property(x => x.Value).HasPrecision(18, 2);
+            financialData.Property(x => x.DataType).HasMaxLength(32);
         });
 
         SeedRoles(modelBuilder);

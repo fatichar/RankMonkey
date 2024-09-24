@@ -10,7 +10,7 @@ public class UserService(ApplicationDbContext context, IMapper mapper)
 {
     // region Public Methods
     // region Create
-    public async Task<UserDto> CreateUserAsync(CreateUserDto newUser)
+    public async Task<UserDto> CreateUserAsync(CreateUserRequest newUser)
     {
         var now = DateTime.UtcNow;
         var user = new User
@@ -51,7 +51,7 @@ public class UserService(ApplicationDbContext context, IMapper mapper)
     // endregion Get
 
     // region Update
-    public async Task<Result<UserDto>> UpdateUserAsync(UserDto user)
+    public async Task<Result<UserDto>> UpdateUserAsync(UpdateUserRequest user)
     {
         var existingUser = await context.Users.FindAsync(user.Id);
         if (existingUser == null)
@@ -59,7 +59,6 @@ public class UserService(ApplicationDbContext context, IMapper mapper)
 
         existingUser.Email = user.Email;
         existingUser.Name = user.Name;
-        existingUser.RoleId = user.Role;
 
         context.Users.Update(existingUser);
         await context.SaveChangesAsync();
