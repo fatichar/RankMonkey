@@ -1,14 +1,5 @@
-.form-control {
-    max-width: 300px;
-}
-
-.card {
-    max-width: 400px;
-    margin-top: 2rem;
-}
-
-@media (max-width: 576px) {
-    .form-control, .card {
-        max-width: 100%;
-    }
+/* Custom styles can be added here if needed */
+h1 {
+    justify-content: center;
+    text-align: center;
 }

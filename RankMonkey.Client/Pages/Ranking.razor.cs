@@ -28,6 +28,8 @@ public partial class Ranking
     {
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         userName = authState.User.Identity?.Name ?? string.Empty;
+        // notify property changed to trigger UI update
+        _ = InvokeAsync(StateHasChanged);
     }
 
     private async Task SubmitMetrics()

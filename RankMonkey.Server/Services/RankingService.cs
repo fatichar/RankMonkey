@@ -23,7 +23,7 @@ public class RankingService(ApplicationDbContext context, IMapper mapper, ILogge
         var incomePercentile = incomeRank / total;
 
         float netWorthRank = await context.Metrics
-            .Where(m => m.NetWorth > user.NetWorth)
+            .Where(m => m.NetWorth < user.NetWorth)
             .CountAsync();
 
         var netWorthPercentile = netWorthRank / total;
