@@ -6,6 +6,7 @@ namespace RankMonkey.Server.Entities;
 [Table("metrics")]
 public class Metrics
 {
+    [Key]
     [Column("user_id")]
     public Guid UserId { get; set; }
 

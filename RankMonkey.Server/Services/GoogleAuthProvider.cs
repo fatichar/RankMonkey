@@ -61,9 +61,13 @@ public class GoogleAuthProvider(
     {
         return payload.Email != existing.Email || payload.Name != existing.Name;
     }
+
     private CreateUserRequest CreateDto(GoogleJsonWebSignature.Payload payload)
     {
-        return new CreateUserRequest(payload.Name, payload.Email, AuthType);
+        return new CreateUserRequest(payload.Name, payload.Email, AuthType)
+        {
+            ExternalId = payload.Subject
+        };
     }
     // endregion Private Methods
 }

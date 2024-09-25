@@ -39,13 +39,38 @@ builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnC
 
 // Add HTTP message handler for authorization
 builder.Services.AddScoped<AuthorizationMessageHandler>();
-builder.Services.AddHttpClient("AuthorizedClient",
-        client => client.BaseAddress = new Uri(builder.Configuration["ServerUrl"] ??
-                                               throw new Exception("ServerUrl not found in configuration")))
+
+// Use the current base address for the authorized client
+var baseAddress = new Uri(builder.HostEnvironment.BaseAddress);
+
+// Register the authorized HttpClient
+builder.Services.AddHttpClient("AuthorizedClient", client =>
+{
+    client.BaseAddress = baseAddress;
+})
+.AddHttpMessageHandler<AuthorizationMessageHandler>();
+
+// Register a named HttpClient for the server API
+var serverUrl = builder.Configuration["ServerUrl"];
+if (!string.IsNullOrEmpty(serverUrl))
+{
+    builder.Services.AddHttpClient("ServerAPI", client =>
+    {
+        client.BaseAddress = new Uri(serverUrl);
+    })
     .AddHttpMessageHandler<AuthorizationMessageHandler>();
+}
+else
+{
+    throw new Exception("ServerUrl not found in configuration");
+}
 
+// Register factory methods for HttpClient
 builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("AuthorizedClient"));
+builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("ServerAPI"));
 
-await builder.Build().RunAsync();
+var host = builder.Build();
+
+await host.RunAsync();
 
 Log.CloseAndFlush();

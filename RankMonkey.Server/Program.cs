@@ -93,8 +93,8 @@ if (builder.Environment.IsDevelopment())
 
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<JwtService>();
-
 builder.Services.AddScoped<MetricsService>();
+builder.Services.AddScoped<RankingService>();
 
 var app = builder.Build();
 

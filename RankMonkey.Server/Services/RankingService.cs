@@ -14,10 +14,10 @@ public class RankingService(ApplicationDbContext context, IMapper mapper, ILogge
         {
             throw new Exception();
         }
-        var total = await context.Metrics.CountAsync();
+        var total = await context.Metrics.CountAsync() - 1;
 
         float incomeRank = await context.Metrics
-            .Where(m => m.Income > user.Income)
+            .Where(m => m.Income < user.Income)
             .CountAsync();
 
         var incomePercentile = incomeRank / total;

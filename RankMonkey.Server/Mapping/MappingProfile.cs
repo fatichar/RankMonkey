@@ -11,5 +11,12 @@ public class MappingProfile : Profile
         CreateMap<User, UserDto>()
             .ForMember(u => u.Role, opt => opt.MapFrom(u => u.RoleId))
             .ReverseMap();
+
+        CreateMap<Metrics, MetricsDto>()
+            .ForMember(m => m.UserId, opt => opt.MapFrom(m => m.UserId))
+            .ReverseMap();
+
+        CreateMap<UpdateMetricsRequest, Metrics>()
+            .ReverseMap();
     }
 }

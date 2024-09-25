@@ -1,10 +1,20 @@
+using System.Net;
 using Microsoft.JSInterop;
 using RankMonkey.Shared.Models;
 using System.Net.Http.Json;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Authorization;
 
 namespace RankMonkey.Client.Pages;
-public partial class Index
+
+public partial class Login
 {
+    [Inject]
+    private IHttpClientFactory HttpClientFactory { get; set; } = default!;
+
+    private HttpClient Http => HttpClientFactory.CreateClient("ServerAPI");
+    
+
     private string GoogleClientId => Configuration["Authentication:Google:ClientId"] ?? throw new InvalidOperationException("Google Client ID not found in configuration.");
     private string _errorMessage = string.Empty;
     private string ErrorMessage
@@ -17,12 +27,26 @@ public partial class Index
         }
     }
 
-    private static Index? _instance;
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "returnUrl")]
+    public string ReturnUrl { get; set; } = "/";
 
-    protected override Task OnInitializedAsync()
+    private static Login? _instance;
+
+    protected override async Task OnInitializedAsync()
     {
         _instance = this;
-        return Task.CompletedTask;
+        Console.WriteLine("Login OnInitializedAsync called");
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity?.IsAuthenticated == true)
+        {
+            Console.WriteLine("User is authenticated, redirecting");
+            RedirectToReturnUrl();
+        }
+        else
+        {
+            Console.WriteLine("User is not authenticated, staying on login page");
+        }
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -31,6 +55,12 @@ public partial class Index
         {
             await InitializeGoogleSignIn();
         }
+    }
+
+    private void RedirectToReturnUrl()
+    {
+        var url = string.IsNullOrWhiteSpace(ReturnUrl) ? "/" : Uri.UnescapeDataString(ReturnUrl);
+        NavigationManager.NavigateTo(url);
     }
 
     private async Task InitializeGoogleSignIn()
@@ -84,7 +114,7 @@ public partial class Index
 
                 await AuthStateProvider.MarkUserAsAuthenticated(token.Token);
 
-                NavigationManager.NavigateTo("/", true);
+                RedirectToReturnUrl();
             }
             else
             {
@@ -133,7 +163,14 @@ public partial class Index
         {
             await JsRuntime.InvokeVoidAsync("signOut");
             await AuthStateProvider.MarkUserAsLoggedOut();
-            NavigationManager.NavigateTo("/", true);
+            NavigationManager.NavigateTo("/login", true);
         }
+    }
+
+    private async Task OnSuccessfulLogin()
+    {
+        Console.WriteLine("Login successful, redirecting");
+        await AuthStateProvider.GetAuthenticationStateAsync();
+        RedirectToReturnUrl();
     }
 }

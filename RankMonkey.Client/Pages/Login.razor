@@ -1,40 +1,32 @@
-@page "/"
-@page "/Login"
+@page "/login"
+@page "/login/{ReturnUrl}"
+@attribute [AllowAnonymous]
 
-@using RankMonkey.Client.Auth
 @using RankMonkey.Client.Services
 @using Microsoft.AspNetCore.Components.WebAssembly.Hosting
+@using Microsoft.AspNetCore.Authorization
 
-@inject HttpClient Http
 @inject CustomAuthStateProvider AuthStateProvider
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JsRuntime
 @inject ILocalStorageService LocalStorage
-@inject ILogger<Index> Logger
+@inject ILogger<Login> Logger
 @inject IConfiguration Configuration
 @inject System.Text.Json.JsonSerializerOptions JsonOptions
 @inject IWebAssemblyHostEnvironment Env
 
-<h1>RankMonkey</h1>
+<h1>Welcome to RankMonkey</h1>
 
 <AuthorizeView>
     <Authorized>
-        <p>Welcome, @context.User.Identity?.Name!</p>
-        <button @onclick="Logout">Sign Out</button>
+        <p>You are already logged in. Redirecting to ranking page...</p>
     </Authorized>
     <NotAuthorized>
         <p>Please sign in to use the app.</p>
         <div id="googleSignInButton"></div>
         @if (Env.IsDevelopment())
         {
-            <button @onclick="LoginAsGuest">Sign In As Guest</button>
+            <button @onclick="LoginAsGuest" class="btn btn-secondary">Sign In As Guest</button>
         }
     </NotAuthorized>
 </AuthorizeView>
-
-@if (!string.IsNullOrEmpty(_errorMessage))
-{
-    <div class="alert alert-danger" role="alert">
-        @_errorMessage
-    </div>
-}

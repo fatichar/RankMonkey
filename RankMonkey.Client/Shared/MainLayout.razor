@@ -1,9 +1,38 @@
+@using RankMonkey.Client.Services
 @inherits LayoutComponentBase
+@inject IHttpClientFactory HttpClientFactory
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
 
 <div class="page">
+    @* <div class="sidebar"> *@
+    @*     <NavMenu /> *@
+    @* </div> *@
+
     <main>
+        <div class="top-row px-4">
+            <AuthorizeView>
+                <Authorized>
+                    <button class="btn btn-link" @onclick="Logout">Logout</button>
+                </Authorized>
+                <NotAuthorized>
+                    <a href="login">Login</a>
+                </NotAuthorized>
+            </AuthorizeView>
+        </div>
+
         <article class="content px-4">
             @Body
         </article>
     </main>
 </div>
+
+@code {
+    private async Task Logout()
+    {
+        var client = HttpClientFactory.CreateClient("AuthorizedClient");
+        await client.PostAsync("api/auth/logout", null);
+        await ((CustomAuthStateProvider)AuthenticationStateProvider).MarkUserAsLoggedOut();
+        NavigationManager.NavigateTo("/");
+    }
+}
