@@ -21,15 +21,35 @@ public partial class Ranking
     }
 
     private Model model = new();
-    private RankingDto? ranking;
+    private RankingDto? ranking = null;
     private string userName = string.Empty;
 
     protected override async void OnInitialized()
     {
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         userName = authState.User.Identity?.Name ?? string.Empty;
+        userName = userName.Split(" ")[0];
         // notify property changed to trigger UI update
         _ = InvokeAsync(StateHasChanged);
+
+        await FetchMetrics();
+    }
+
+    private async Task FetchMetrics()
+    {
+        try
+        {
+            var metrics = await Http.GetFromJsonAsync<MetricsDto>("api/metrics");
+            model.Income = metrics.Income;
+            model.NetWorth = metrics.NetWorth;
+            model.Currency = metrics.Currency;
+            await FetchRanking();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error fetching metrics");
+            // TODO: Display error message to user
+        }
     }
 
     private async Task SubmitMetrics()
@@ -52,6 +72,7 @@ public partial class Ranking
         try
         {
             ranking = await Http.GetFromJsonAsync<RankingDto>("api/ranking");
+            _ = InvokeAsync(StateHasChanged);
         }
         catch (Exception ex)
         {
@@ -62,7 +83,7 @@ public partial class Ranking
 
     private string FormatPercentile(float percentile)
     {
-        return $"{percentile:P2}";
+        return percentile < 0 ? "-" : $"{percentile:P2}";
     }
 
     private string GetCurrencySymbol()

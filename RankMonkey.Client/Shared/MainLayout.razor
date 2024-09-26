@@ -1,11 +1,10 @@
 @using RankMonkey.Client.Services
 @inherits LayoutComponentBase
 @inject IHttpClientFactory HttpClientFactory
-@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject CustomAuthStateProvider AuthStateProvider
 @inject NavigationManager NavigationManager
 
 <div class="page">
-
     <main>
         <div class="top-row px-4">
             <AuthorizeView>
@@ -25,11 +24,26 @@
 </div>
 
 @code {
+    protected override void OnInitialized()
+    {
+        AuthStateProvider.AuthenticationStateChanged += AuthenticationStateProvider_AuthenticationStateChanged;
+    }
+
+    private void AuthenticationStateProvider_AuthenticationStateChanged(Task<AuthenticationState> task)
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
     private async Task Logout()
     {
-        var client = HttpClientFactory.CreateClient("AuthorizedClient");
+        var client = HttpClientFactory.CreateClient("ServerAPI");
         await client.PostAsync("api/auth/logout", null);
-        await ((CustomAuthStateProvider)AuthenticationStateProvider).MarkUserAsLoggedOut();
-        NavigationManager.NavigateTo("/");
+        await AuthStateProvider.MarkUserAsLoggedOut();
+        NavigationManager.NavigateTo("/login");
+    }
+
+    public void Dispose()
+    {
+        AuthStateProvider.AuthenticationStateChanged -= AuthenticationStateProvider_AuthenticationStateChanged;
     }
 }
