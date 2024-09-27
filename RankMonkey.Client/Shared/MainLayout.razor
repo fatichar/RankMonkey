@@ -3,6 +3,7 @@
 @inject IHttpClientFactory HttpClientFactory
 @inject CustomAuthStateProvider AuthStateProvider
 @inject NavigationManager NavigationManager
+@implements IDisposable
 
 <div class="page">
     <main>
@@ -24,26 +25,37 @@
 </div>
 
 @code {
-    protected override void OnInitialized()
+    protected override Task OnInitializedAsync()
     {
-        AuthStateProvider.AuthenticationStateChanged += AuthenticationStateProvider_AuthenticationStateChanged;
+        AuthStateProvider.AuthenticationStateChanged += AuthenticationStateChangedHandler;
+        return base.OnInitializedAsync();
     }
 
-    private void AuthenticationStateProvider_AuthenticationStateChanged(Task<AuthenticationState> task)
+    private async void AuthenticationStateChangedHandler(Task<AuthenticationState> task)
     {
-        InvokeAsync(StateHasChanged);
+        await InvokeAsync(async () =>
+        {
+            await task;
+            StateHasChanged();
+        });
     }
 
     private async Task Logout()
     {
         var client = HttpClientFactory.CreateClient("ServerAPI");
-        await client.PostAsync("api/auth/logout", null);
+        // Uncomment the following line if you need to notify the server about the logout
+        // await client.PostAsync("api/auth/logout", null);
         await AuthStateProvider.MarkUserAsLoggedOut();
-        NavigationManager.NavigateTo("/login");
+
+        // Wait for the state to be updated
+        await AuthStateProvider.GetAuthenticationStateAsync();
+
+        // Force a re-render of the entire application
+        NavigationManager.NavigateTo("/", forceLoad: true);
     }
 
     public void Dispose()
     {
-        AuthStateProvider.AuthenticationStateChanged -= AuthenticationStateProvider_AuthenticationStateChanged;
+        AuthStateProvider.AuthenticationStateChanged -= AuthenticationStateChangedHandler;
     }
 }

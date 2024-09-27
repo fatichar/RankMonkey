@@ -13,7 +13,7 @@ public class CustomAuthStateProvider(HttpClient httpClient, ILocalStorageService
     public override async Task<AuthenticationState> GetAuthenticationStateAsync()
     {
         var token = await storage.TryGetItemAsync<string>(AUTH_TOKEN);
-
+        Console.WriteLine($"GetAuthenticationStateAsync called, token exists: {!string.IsNullOrEmpty(token)}");
         return CreateAuthState(token);
     }
 
@@ -23,15 +23,20 @@ public class CustomAuthStateProvider(HttpClient httpClient, ILocalStorageService
 
         var authState = CreateAuthState(token);
         NotifyAuthenticationStateChanged(Task.FromResult(authState));
+
+        // Force a refresh of the authentication state
+        _ = GetAuthenticationStateAsync();
     }
 
     public async Task MarkUserAsLoggedOut()
     {
         await storage.RemoveItemAsync(AUTH_TOKEN);
-
         ClearAuthorizationState();
+        Console.WriteLine("User marked as logged out");
 
-        NotifyAuthenticationStateChanged(Task.FromResult(_anonymous));
+        // Immediately update the authentication state
+        var authState = await GetAuthenticationStateAsync();
+        NotifyAuthenticationStateChanged(Task.FromResult(authState));
     }
 
     private AuthenticationState CreateAuthState(string? token)

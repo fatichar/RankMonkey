@@ -13,7 +13,7 @@ public partial class Login
     private IHttpClientFactory HttpClientFactory { get; set; } = default!;
 
     private HttpClient Http => HttpClientFactory.CreateClient("ServerAPI");
-    
+
 
     private string GoogleClientId => Configuration["Authentication:Google:ClientId"] ?? throw new InvalidOperationException("Google Client ID not found in configuration.");
     private string _errorMessage = string.Empty;
@@ -38,6 +38,9 @@ public partial class Login
         _instance = this;
         Console.WriteLine("Login OnInitializedAsync called");
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+
+        Console.WriteLine($"Is authenticated: {authState.User.Identity?.IsAuthenticated}");
+
         if (authState.User.Identity?.IsAuthenticated == true)
         {
             Console.WriteLine("User is authenticated, redirecting");
@@ -114,7 +117,8 @@ public partial class Login
 
                 await AuthStateProvider.MarkUserAsAuthenticated(token.Token);
 
-                RedirectToReturnUrl();
+                // Force a re-render of the entire application
+                NavigationManager.NavigateTo("/", forceLoad: true);
             }
             else
             {
