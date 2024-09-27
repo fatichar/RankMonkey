@@ -11,9 +11,21 @@ using RankMonkey.Server.Exceptions;
 using RankMonkey.Server.Services;
 using RankMonkey.Server.Mapping;
 
+using static Microsoft.AspNetCore.Http.StatusCodes;
+
 // ... other using statements ...
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure Kestrel to listen on all network interfaces
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenAnyIP(5000); // HTTP port
+    options.ListenAnyIP(5001, listenOptions =>
+    {
+        listenOptions.UseHttps(); // HTTPS port
+    });
+});
 
 // Add service defaults & Aspire components.
 builder.AddServiceDefaults();
@@ -96,6 +108,15 @@ builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<MetricsService>();
 builder.Services.AddScoped<RankingService>();
 
+// if (!builder.Environment.IsDevelopment())
+// {
+//     builder.Services.AddHttpsRedirection(options =>
+//     {
+//         options.RedirectStatusCode = Status308PermanentRedirect;
+//         options.HttpsPort = 443;
+//     });
+// }
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -121,7 +142,7 @@ else
     });
 }
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 app.UseBlazorFrameworkFiles();
 app.UseStaticFiles();
 app.UseRouting();

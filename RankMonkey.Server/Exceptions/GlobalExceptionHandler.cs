@@ -7,6 +7,7 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
 {
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
     {
+        logger.LogError(exception, "Exception handled at GlobalExceptionHandler");
         var problemDetails = new ProblemDetails();
         problemDetails.Instance = httpContext.Request.Path;
         if (exception is BaseException e)
@@ -18,6 +19,7 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
         {
             problemDetails.Title = exception.Message;
         }
+        logger.LogError("{stack trace}", exception.StackTrace);
         logger.LogError("{ProblemDetailsTitle}", problemDetails.Title);
         problemDetails.Status = httpContext.Response.StatusCode;
         await httpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken).ConfigureAwait(false);
