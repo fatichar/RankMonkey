@@ -1,12 +1,18 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Net;
 using System.Net.Http.Json;
+using Microsoft.AspNetCore.Components;
 using RankMonkey.Shared.Models;
 
 namespace RankMonkey.Client.Pages;
 
 public partial class Ranking
 {
+    [Inject]
+    private IHttpClientFactory HttpClientFactory { get; set; } = default!;
+
+    private HttpClient Http => HttpClientFactory.CreateClient("ServerAPI");
+
     private class Model
     {
         [Required] public string Currency { get; set; } = "INR";

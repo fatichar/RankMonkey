@@ -6,7 +6,6 @@
 @using RankMonkey.Client.Pages
 @using Microsoft.AspNetCore.Authorization
 
-@inject HttpClient Http
 @inject ILogger<Ranking> Logger
 @inject CustomAuthStateProvider AuthStateProvider
 @inject NavigationManager NavigationManager
@@ -82,20 +81,3 @@
         <RedirectToLogin />
     </NotAuthorized>
 </AuthorizeView>
-
-@code {
-    protected override async Task OnInitializedAsync()
-    {
-        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        if (!authState.User.Identity.IsAuthenticated)
-        {
-            NavigationManager.NavigateTo("/login");
-        }
-        else
-        {
-            // Your existing initialization code
-        }
-    }
-
-    // Rest of your component code
-}

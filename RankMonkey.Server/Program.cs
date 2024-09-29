@@ -13,28 +13,29 @@ using RankMonkey.Server.Mapping;
 
 using static Microsoft.AspNetCore.Http.StatusCodes;
 
-// ... other using statements ...
-
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure Kestrel to listen on all network interfaces
+#region Kestrel Configuration
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.ListenAnyIP(5000); // HTTP port
-    options.ListenAnyIP(5001, listenOptions =>
-    {
-        listenOptions.UseHttps(); // HTTPS port
-    });
-});
+    var kestrelConfig = builder.Configuration.GetSection("Kestrel:Endpoints");
 
-// Add service defaults & Aspire components.
+    var port = kestrelConfig.GetSection("Http").GetValue<string>("Port");
+    if (string.IsNullOrWhiteSpace(port))
+    {
+        port = "5000";
+    }
+    var httpPort = int.Parse(port);
+    options.ListenAnyIP(httpPort);
+});
+#endregion Kestrel Configuration
+
+#region Add services
 builder.AddServiceDefaults();
 
-// Add services to the container.
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Add Swagger services
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -58,14 +59,15 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
-// Add CORS configuration
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", builder =>
+    options.AddPolicy("DevelopmentPolicy", policyBuilder =>
     {
-        builder.AllowAnyOrigin()
-               .AllowAnyMethod()
-               .AllowAnyHeader();
+        policyBuilder
+            .AllowAnyOrigin()
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials();
     });
 });
 
@@ -107,19 +109,11 @@ builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<MetricsService>();
 builder.Services.AddScoped<RankingService>();
-
-// if (!builder.Environment.IsDevelopment())
-// {
-//     builder.Services.AddHttpsRedirection(options =>
-//     {
-//         options.RedirectStatusCode = Status308PermanentRedirect;
-//         options.HttpsPort = 443;
-//     });
-// }
+#endregion Add services
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+#region Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
     app.UseWebAssemblyDebugging();
@@ -142,18 +136,16 @@ else
     });
 }
 
-// app.UseHttpsRedirection();
 app.UseBlazorFrameworkFiles();
 app.UseStaticFiles();
+app.UseCors("DevelopmentPolicy");
 app.UseRouting();
-
-// Add CORS middleware
-app.UseCors("AllowAll");
 
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
 app.MapFallbackToFile("index.html");
+#endregion Configure the HTTP request pipeline
 
 app.Run();

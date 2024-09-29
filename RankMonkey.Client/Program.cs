@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using RankMonkey.Client;
-using RankMonkey.Client.Auth;
 using RankMonkey.Client.Services;
 using Serilog;
 using Serilog.Extensions.Logging;
