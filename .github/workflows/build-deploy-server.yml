@@ -11,7 +11,6 @@ env:
   DOTNET_VERSION: '8.0.x'
   PROJECT_PATH: 'RankMonkey.Server/RankMonkey.Server.csproj'
   PUBLISH_PATH: '${{ github.workspace }}/publish'
-  : 'rankmonkey.in'
   DEPLOY_PATH: '/apps/rankmonkey/server/'  # Replace with your actual deployment path on the VPS
 
 jobs:
