@@ -15,21 +15,6 @@ using static Microsoft.AspNetCore.Http.StatusCodes;
 
 var builder = WebApplication.CreateBuilder(args);
 
-#region Kestrel Configuration
-builder.WebHost.ConfigureKestrel(options =>
-{
-    var kestrelConfig = builder.Configuration.GetSection("Kestrel:Endpoints");
-
-    var port = kestrelConfig.GetSection("Http").GetValue<string>("Port");
-    if (string.IsNullOrWhiteSpace(port))
-    {
-        port = "5000";
-    }
-    var httpPort = int.Parse(port);
-    options.ListenAnyIP(httpPort);
-});
-#endregion Kestrel Configuration
-
 #region Add services
 builder.AddServiceDefaults();
 
