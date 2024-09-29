@@ -83,4 +83,4 @@ jobs:
     - name: Deploy to VPS
       run: |
         scp -v -P 22222 -r ${{ env.PUBLISH_PATH }}/* ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:${{ env.DEPLOY_PATH }}
-        ssh -p 22222 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "sudo systemctl restart rankmonkey.service"
+        ssh -t -p 22222 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "sudo -n systemctl restart rankmonkey.service || echo 'Failed to restart service'"
