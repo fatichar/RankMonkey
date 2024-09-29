@@ -11,7 +11,7 @@ env:
   DOTNET_VERSION: '8.0.x'
   PROJECT_PATH: 'RankMonkey.Server/RankMonkey.Server.csproj'
   PUBLISH_PATH: '${{ github.workspace }}/publish'
-  DEPLOY_PATH: '/apps/rankmonkey/server/'  # Replace with your actual deployment path on the VPS
+  DEPLOY_PATH: '/apps/rankmonkey/server/'
 
 jobs:
   build:
@@ -59,8 +59,27 @@ jobs:
       with:
         key: ${{ secrets.VPS_DEPLOY_KEY }}
         known_hosts: ${{ secrets.KNOWN_HOSTS }}
+        if_key_exists: replace
+        config: |
+          Host ${{ secrets.SERVER_HOST }}
+            HostName ${{ secrets.SERVER_HOST }}
+            User ${{ secrets.SERVER_USER }}
+            Port 22222
+            IdentityFile ~/.ssh/id_ed25519
+
+    - name: Debug SSH
+      run: |
+        echo "SSH key file permissions:"
+        ls -l ~/.ssh
+        echo "SSH config:"
+        cat ~/.ssh/config
+        echo "Known hosts:"
+        cat ~/.ssh/known_hosts
+
+    - name: Test SSH Connection
+      run: ssh -v ${{ secrets.SERVER_HOST }} "echo 'SSH connection successful'"
 
     - name: Deploy to VPS
       run: |
-        scp -P 22222 -r ${{ env.PUBLISH_PATH }}/* ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:${{ env.DEPLOY_PATH }}
+        scp -v -P 22222 -r ${{ env.PUBLISH_PATH }}/* ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:${{ env.DEPLOY_PATH }}
         ssh -p 22222 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "sudo systemctl restart rankmonkey.service"
