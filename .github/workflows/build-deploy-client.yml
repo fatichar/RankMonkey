@@ -1,30 +1,31 @@
-name: Build and Deploy RankMonkey.Server
+name: Build and Deploy RankMonkey.Client
 
 on:
   push:
     branches: [ "deploy" ]
     paths:
-      - 'RankMonkey.Server/**'
+      - 'RankMonkey.Client/**'
       - 'RankMonkey.Shared/**'
-      - '.github/workflows/build-deploy-server.yml'
+      - '.github/workflows/build-deploy-client.yml'
   pull_request:
     branches: [ "deploy" ]
   workflow_dispatch:
 
 env:
   DOTNET_VERSION: '8.0.x'
-  PROJECT_PATH: 'RankMonkey.Server/RankMonkey.Server.csproj'
+  PROJECT_PATH: 'RankMonkey.Client/RankMonkey.Client.csproj' # Updated to point directly to the client project
   PUBLISH_PATH: '${{ github.workspace }}/publish'
-  DEPLOY_PATH: '/apps/rankmonkey/server/'
+  DEPLOY_PATH: '/apps/rankmonkey/client/' # Ensure this path matches your Nginx configuration
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - name: Checkout Repository
+      uses: actions/checkout@v3
 
-    - name: Cache NuGet packages
+    - name: Cache NuGet Packages
       uses: actions/cache@v3
       with:
         path: ~/.nuget/packages
@@ -38,22 +39,22 @@ jobs:
         dotnet-version: ${{ env.DOTNET_VERSION }}
         cache: true
 
-    - name: Restore dependencies
+    - name: Restore Dependencies
       run: dotnet restore ${{ env.PROJECT_PATH }} --locked-mode=false
 
-    - name: Build
+    - name: Build Project
       run: dotnet build ${{ env.PROJECT_PATH }} --configuration Release --no-restore
 
-    - name: Test
+    - name: Run Tests
       run: dotnet test ${{ env.PROJECT_PATH }} --no-restore --verbosity normal
 
-    - name: Publish
-      run: dotnet publish ${{ env.PROJECT_PATH }} -c Release -o ${{ env.PUBLISH_PATH }}
+    - name: Publish Project
+      run: dotnet publish ${{ env.PROJECT_PATH }} -c Release -o ${{ env.PUBLISH_PATH }} --no-build -p:BlazorWebAssemblyEnableCompression=true
 
-    - name: Upload artifact for deployment job
+    - name: Upload Artifact for Deployment
       uses: actions/upload-artifact@v3
       with:
-        name: .net-app
+        name: client-app
         path: ${{ env.PUBLISH_PATH }}
 
   deploy:
@@ -61,10 +62,10 @@ jobs:
     needs: build
 
     steps:
-    - name: Download artifact from build job
+    - name: Download Artifact from Build Job
       uses: actions/download-artifact@v3
       with:
-        name: .net-app
+        name: client-app
         path: ${{ env.PUBLISH_PATH }}
 
     - name: Install SSH Key
@@ -84,7 +85,7 @@ jobs:
     - name: Test SSH Connection
       run: ssh -o BatchMode=yes -p 22222 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "echo 'SSH connection successful'"
 
-    - name: Deploy to VPS
+    - name: Deploy to VPS Using rsync
       run: |
         rsync -avz -e "ssh -p 22222" ${{ env.PUBLISH_PATH }}/ ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:${{ env.DEPLOY_PATH }}
-        ssh -t -p 22222 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "sudo -n systemctl restart rankmonkey.service || echo 'Failed to restart service'"
+        ssh -p 22222 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "sudo systemctl reload nginx || echo 'Failed to reload Nginx service'"
