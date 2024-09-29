@@ -60,13 +60,13 @@ jobs:
         key: ${{ secrets.VPS_DEPLOY_KEY }}
         known_hosts: ${{ secrets.KNOWN_HOSTS }}
         if_key_exists: replace
-        name: id_ed25519
+        name: id_rsa
         config: |
           Host ${{ secrets.SERVER_HOST }}
             HostName ${{ secrets.SERVER_HOST }}
             User ${{ secrets.SERVER_USER }}
             Port 22222
-            IdentityFile ~/.ssh/id_ed25519
+            IdentityFile ~/.ssh/id_rsa
 
     - name: Debug SSH
       run: |
