@@ -66,8 +66,7 @@ builder.Services.AddCors(options =>
         policyBuilder
             .AllowAnyOrigin()
             .AllowAnyMethod()
-            .AllowAnyHeader()
-            .AllowCredentials();
+            .AllowAnyHeader();
     });
 });
 
@@ -145,7 +144,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-app.MapFallbackToFile("index.html");
 #endregion Configure the HTTP request pipeline
 
 app.Run();
