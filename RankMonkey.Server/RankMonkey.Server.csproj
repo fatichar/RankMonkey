@@ -24,6 +24,7 @@
   <ItemGroup>
     <ProjectReference Include="..\RankMonkey.ServiceDefaults\RankMonkey.ServiceDefaults.csproj" />
     <ProjectReference Include="..\RankMonkey.Shared\RankMonkey.Shared.csproj" />
+    <ProjectReference Include="..\RankMonkey.Client\RankMonkey.Client.csproj" />
   </ItemGroup>
 
   <ItemGroup>

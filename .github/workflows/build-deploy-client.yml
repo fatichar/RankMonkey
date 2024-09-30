@@ -42,7 +42,7 @@ jobs:
       run: dotnet test ${{ env.PROJECT_PATH }} --no-build --verbosity normal
 
     - name: Publish Project
-      run: dotnet publish ${{ env.PROJECT_PATH }} -c Release -o ${{ env.PUBLISH_PATH }} --no-build -p:BlazorWebAssemblyEnableCompression=true
+      run: dotnet publish ${{ env.PROJECT_PATH }} -c Release -o ${{ env.PUBLISH_PATH }} --no-build
 
     - name: Upload Artifact for Deployment
       uses: actions/upload-artifact@v3

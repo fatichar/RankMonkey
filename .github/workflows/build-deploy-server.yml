@@ -6,6 +6,7 @@ on:
     paths:
       - 'RankMonkey.Server/**'
       - 'RankMonkey.Shared/**'
+      - 'RankMonkey.Client/**'
       - '.github/workflows/build-deploy-server.yml'
   pull_request:
     branches: [ "deploy" ]

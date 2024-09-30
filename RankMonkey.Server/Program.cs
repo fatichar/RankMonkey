@@ -10,6 +10,7 @@ using RankMonkey.Server.Data;
 using RankMonkey.Server.Exceptions;
 using RankMonkey.Server.Services;
 using RankMonkey.Server.Mapping;
+using RankMonkey.Client;
 
 using static Microsoft.AspNetCore.Http.StatusCodes;
 
@@ -93,6 +94,10 @@ builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<MetricsService>();
 builder.Services.AddScoped<RankingService>();
+
+builder.Services.AddRazorComponents()
+    .AddInteractiveWebAssemblyComponents();
+
 #endregion Add services
 
 var app = builder.Build();
@@ -129,6 +134,10 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapRazorComponents<App>()
+    .AddInteractiveWebAssemblyRenderMode();
+
 #endregion Configure the HTTP request pipeline
 
 app.Run();
