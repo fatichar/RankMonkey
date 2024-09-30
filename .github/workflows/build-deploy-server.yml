@@ -42,7 +42,12 @@ jobs:
       run: dotnet test ${{ env.PROJECT_PATH }} --no-build --verbosity normal
 
     - name: Publish
-      run: dotnet publish ${{ env.PROJECT_PATH }} -c Release -o ${{ env.PUBLISH_PATH }}
+      run: |
+        dotnet publish ${{ env.PROJECT_PATH }} -c Release -o ${{ env.PUBLISH_PATH }} \
+        /p:ExcludeConfigFilesFromBuildOutput=false \
+        /p:CopyOutputSymbolsToPublishDirectory=false \
+        /p:PreserveCompilationContext=false \
+        /p:ExcludeFilesFromDeployment="**/RankMonkey.Client/packages.lock.json"
 
     - name: Upload artifact for deployment job
       uses: actions/upload-artifact@v3
