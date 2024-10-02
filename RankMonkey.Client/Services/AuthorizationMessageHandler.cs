@@ -1,16 +1,16 @@
 using System.Net.Http.Headers;
+using Microsoft.Extensions.Logging;
 
 namespace RankMonkey.Client.Services;
 
-public class AuthorizationMessageHandler(ILocalStorageService localStorage) : DelegatingHandler
+public class AuthorizationMessageHandler(ILocalStorageService localStorage, ILogger<AuthorizationMessageHandler> logger) : DelegatingHandler
 {
-    private readonly string[] _anonymousUrls = new[]
-    {
+    private const string AUTH_TOKEN_KEY = "authToken";
+    private readonly string[] _anonymousUrls =
+    [
         "api/auth/login",
-        "api/auth/register",
-        "api/public"
-        // Add any other URLs that should not include the JWT token
-    };
+        "api/auth/register"
+    ];
 
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
@@ -23,10 +23,16 @@ public class AuthorizationMessageHandler(ILocalStorageService localStorage) : De
     {
         if (ShouldAddToken(request.RequestUri))
         {
-            var token = await localStorage.TryGetItemAsync<string>("authToken");
+            logger.LogInformation("Attempting to retrieve auth token for request to {RequestUri}", request.RequestUri);
+            var token = await localStorage.TryGetItemAsync<string>(AUTH_TOKEN_KEY);
             if (!string.IsNullOrEmpty(token))
             {
+                logger.LogInformation("Auth token found. Adding to request headers.");
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+            else
+            {
+                logger.LogWarning("Auth token not found in local storage for request to {RequestUri}", request.RequestUri);
             }
         }
     }

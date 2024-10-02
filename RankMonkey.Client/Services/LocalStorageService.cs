@@ -30,9 +30,13 @@ public class LocalStorageService(IJSRuntime jsRuntime, ILogger<LocalStorageServi
     {
         var json = await jsRuntime.InvokeAsync<string?>(LOCALSTORAGE_GET_ITEM, key);
 
+        logger.LogInformation("Attempting to retrieve item with key: {key}. Raw JSON: {json}", key, json);
+
         try
         {
-            return json == null ? default : JsonSerializer.Deserialize<T>(json, _jsonOptions);
+            var result = json == null ? default : JsonSerializer.Deserialize<T>(json, _jsonOptions);
+            logger.LogInformation("Deserialized result for key {key}: {result}", key, result);
+            return result;
         }
         catch (JsonException e)
         {
@@ -44,7 +48,9 @@ public class LocalStorageService(IJSRuntime jsRuntime, ILogger<LocalStorageServi
     public async Task SetItemAsync<T>(string key, T value)
     {
         logger.LogInformation("Setting item {key} to {value}", key, value);
-        await jsRuntime.InvokeVoidAsync("localStorage.setItem", key, JsonSerializer.Serialize(value, _jsonOptions));
+        var serializedValue = JsonSerializer.Serialize(value, _jsonOptions);
+        await jsRuntime.InvokeVoidAsync("localStorage.setItem", key, serializedValue);
+        logger.LogInformation("Item set in localStorage. Key: {key}, Serialized Value: {serializedValue}", key, serializedValue);
     }
 
     public async Task RemoveItemAsync(string key)

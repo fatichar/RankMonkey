@@ -50,11 +50,11 @@ public partial class Ranking
             model.NetWorth = metrics.NetWorth;
             model.Currency = metrics.Currency;
             await FetchRanking();
+            ErrorMessage = null;
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Error fetching metrics");
-            // TODO: Display error message to user
+            ErrorMessage = "Error fetching metrics" + ex.Message;
         }
     }
 
@@ -65,25 +65,29 @@ public partial class Ranking
         {
             await Http.PutAsJsonAsync("api/metrics", metrics);
             await FetchRanking();
+            ErrorMessage = null;
         }
         catch (Exception ex)
         {
             Logger.LogError(ex, "Error submitting metrics");
-            // TODO: Display error message to user
+            ErrorMessage = "Error submitting metrics" + ex.Message;
         }
     }
+
+    public string? ErrorMessage { get; set; }
 
     private async Task FetchRanking()
     {
         try
         {
             ranking = await Http.GetFromJsonAsync<RankingDto>("api/ranking");
+            ErrorMessage = null;
             _ = InvokeAsync(StateHasChanged);
         }
         catch (Exception ex)
         {
             Logger.LogError(ex, "Error fetching ranking");
-            // TODO: Display error message to user
+            ErrorMessage = "Error fetching ranking" + ex.Message;
         }
     }
 

@@ -27,7 +27,7 @@
                                 <DataAnnotationsValidator />
                                 <ValidationSummary />
 
-                                <div class="mb-3">
+                                <div class="mb-3 currency-select-container">
                                     <label for="currency" class="form-label">Currency</label>
                                     <InputSelect id="currency" @bind-Value="model.Currency" class="form-select">
                                         <option value="INR">INR</option>
@@ -48,6 +48,12 @@
                                 </div>
 
                                 <button type="submit" class="btn btn-primary w-100">Submit</button>
+                                @if (!string.IsNullOrEmpty(ErrorMessage))
+                                {
+                                    <div class="alert alert-danger mt-3" role="alert">
+                                        @ErrorMessage
+                                    </div>
+                                }
                             </EditForm>
                         </div>
                     </div>
